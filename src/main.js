@@ -4,6 +4,7 @@ import Phaser from 'phaser';
 // uvoz scen
 import UIScene from './scenes/UIScene';
 import PreloadScene from './scenes/preloadScene';
+import MenuScene from './scenes/menuScene';
 
 const config = {
   type: Phaser.AUTO,            
@@ -13,6 +14,7 @@ const config = {
   parent: 'game-container',      
   scene: [
     // uvoz scen
+    MenuScene,
     PreloadScene,
     UIScene
   ],
