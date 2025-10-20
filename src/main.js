@@ -15,8 +15,8 @@ const config = {
   parent: 'game-container',      
   scene: [
     // uvoz scen
-    LabScene,
     MenuScene,
+    LabScene,
     PreloadScene,
     UIScene
   ],
