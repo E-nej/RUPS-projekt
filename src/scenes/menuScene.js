@@ -28,5 +28,8 @@ export default class MenuScene extends Phaser.Scene {
         .setInteractive({ useHandCursor: true }) 
         .on('pointerover', () => startButton.setStyle({ color: '#0044cc' }))
         .on('pointerout', () => startButton.setStyle({ color: '#0066ff' }))
+                .on('pointerdown', () => {
+            this.scene.start('LabScene'); 
+        });
     }
 }
