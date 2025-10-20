@@ -11,5 +11,9 @@ export default class LabScene extends Phaser.Scene {
             fontSize: '24px',
             color: '#222'
         });
+
+        this.input.keyboard.on('keydown-ESC', () => {
+            this.scene.start('MenuScene');
+        });
     }
 }
