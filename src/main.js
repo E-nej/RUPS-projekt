@@ -2,7 +2,7 @@ import './style.css'
 import Phaser from 'phaser';
 
 // uvoz scen
-
+import UIScene from './scenes/UIScene';
 
 const config = {
   type: Phaser.AUTO,            
@@ -12,6 +12,7 @@ const config = {
   parent: 'game-container',      
   scene: [
     // uvoz scen
+    UIScene
   ],
   physics: {
     default: 'arcade',           
