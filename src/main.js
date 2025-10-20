@@ -3,6 +3,7 @@ import Phaser from 'phaser';
 
 // uvoz scen
 import UIScene from './scenes/UIScene';
+import PreloadScene from './scenes/preloadScene';
 
 const config = {
   type: Phaser.AUTO,            
@@ -12,6 +13,7 @@ const config = {
   parent: 'game-container',      
   scene: [
     // uvoz scen
+    PreloadScene,
     UIScene
   ],
   physics: {
