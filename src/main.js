@@ -6,6 +6,8 @@ import UIScene from './scenes/UIScene';
 import PreloadScene from './scenes/preloadScene';
 import MenuScene from './scenes/menuScene';
 import LabScene from './scenes/labScene';
+import LoginScene from './scenes/loginScene';
+import ScoreboardScene from './scenes/scoreboardScene';
 
 const config = {
   type: Phaser.AUTO,            
@@ -18,7 +20,9 @@ const config = {
     MenuScene,
     LabScene,
     PreloadScene,
-    UIScene
+    UIScene,
+    LoginScene,
+    ScoreboardScene
   ],
   physics: {
     default: 'arcade',           
