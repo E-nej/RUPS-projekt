@@ -31,7 +31,7 @@ export class Battery extends DraggableComponent {
         this.isOn = current > 0.01;
         if (this.isOn) {
             const power = voltage * current;
-            this.brightness = Math.min(power / 5, 1); // normalize brightness
+            this.brightness = Math.min(power / 5, 1); // normaliziraj moc za svetlost
         } else {
             this.brightness = 0;
         }
@@ -41,9 +41,9 @@ export class Battery extends DraggableComponent {
         ctx.save();
         ctx.translate(this.x, this.y);
 
-        // bulb circle
+        // krog pri svetilki
         if (this.isOn) {
-            // glow effect
+            // glow efekt
             const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, this.radius + 10);
             gradient.addColorStop(0, `rgba(255, 255, 100, ${this.brightness})`);
             gradient.addColorStop(0.5, `rgba(255, 255, 0, ${this.brightness * 0.5})`);
@@ -54,7 +54,7 @@ export class Battery extends DraggableComponent {
             ctx.fill();
         }
 
-        // bulb outline
+        // obroba svetilke
         ctx.strokeStyle = '#000';
         ctx.lineWidth = 2;
         ctx.fillStyle = this.isOn ? `rgba(255, 255, 150, ${0.3 + this.brightness * 0.7})` : '#FFF';
@@ -63,7 +63,7 @@ export class Battery extends DraggableComponent {
         ctx.fill();
         ctx.stroke();
 
-        // filament
+        // polnilo
         ctx.strokeStyle = this.isOn ? '#FF6600' : '#666';
         ctx.lineWidth = 1.5;
         ctx.beginPath();
@@ -73,7 +73,7 @@ export class Battery extends DraggableComponent {
         ctx.lineTo(8, 5);
         ctx.stroke();
 
-        // connection wires
+        // povezovalne zice
         ctx.strokeStyle = '#000';
         ctx.lineWidth = 2;
         ctx.beginPath();
@@ -83,7 +83,7 @@ export class Battery extends DraggableComponent {
         ctx.lineTo(0, this.radius + 10);
         ctx.stroke();
 
-        // terminal dots
+        // pike na terminalih
         ctx.fillStyle = '#888';
         ctx.beginPath();
         ctx.arc(0, -this.radius - 10, 4, 0, Math.PI * 2);

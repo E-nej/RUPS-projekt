@@ -24,17 +24,17 @@ export class DraggableComponent {
     }
 
     isPointInside(x, y) {
-        // To be overridden
+        // prepisi s child classes
         throw new Error('isPointInside must be implemented by child classes');
     }
 
     draw(ctx) {
-        // To be overridden
+        // prepisi s child classes
         throw new Error('draw must be implemented by child classes');
     }
 
     getConnectors() {
-        // To be overridden
+        // prepisi s child classes
         return [];
     }
 }

@@ -5,8 +5,8 @@ export class Wire extends DraggableComponent {
         super(x, y);
         this.startTerminal = null;
         this.endTerminal = null;
-        this.resistance = 0.1;      // wire's resistance
-        this.controlPoint = null;   // curved wires
+        this.resistance = 0.1;      // upor zice
+        this.controlPoint = null;   // krivulja zice
     }
 
     connect(terminal1, terminal2) {
@@ -26,7 +26,7 @@ export class Wire extends DraggableComponent {
     isPointInside(x, y) {
         if (!this.startTerminal || !this.endTerminal) return false;
         
-        // distance check to wire line
+        // preveri razdaljo do linije zice
         const threshold = 5;
         const x1 = this.startTerminal.x;
         const y1 = this.startTerminal.y;
@@ -60,7 +60,7 @@ export class Wire extends DraggableComponent {
     }
 
     getConnectors() {
-        return []; // no additional connectors
+        return []; // ni konektorjev za zico
     }
 
     draw(ctx) {
@@ -73,7 +73,7 @@ export class Wire extends DraggableComponent {
         ctx.beginPath();
         ctx.moveTo(this.startTerminal.x, this.startTerminal.y);
         
-        // straight line (enhance with curves - if needed)
+        // ravna linija (dodaj krivuljo po potrebi)
         ctx.lineTo(this.endTerminal.x, this.endTerminal.y);
         ctx.stroke();
 

@@ -3,7 +3,7 @@ import { DraggableComponent } from './DraggableComponent';
 export class Switch extends DraggableComponent {
     constructor(x, y) {
         super(x, y);
-        this.isOpen = true; // true = off, false = on
+        this.isOpen = true; // true = nesklenjen krog, false = sklenjen krog
         this.width = 60;
         this.height = 40;
         this.terminals = [
@@ -45,19 +45,19 @@ export class Switch extends DraggableComponent {
         ctx.arc(30, 0, 4, 0, Math.PI * 2);
         ctx.fill();
 
-        // switch lever
+        // rocica stikala
         ctx.strokeStyle = this.isOpen ? '#C00' : '#0C0';
         ctx.lineWidth = 3;
         ctx.beginPath();
         ctx.moveTo(-25, 0);
         if (this.isOpen) {
-            ctx.lineTo(15, -15); // open
+            ctx.lineTo(15, -15); // odprto
         } else {
-            ctx.lineTo(25, 0); // close
+            ctx.lineTo(25, 0); // zaprto
         }
         ctx.stroke();
 
-        // label
+        // oznaka
         ctx.fillStyle = '#000';
         ctx.font = '12px Arial';
         ctx.fillText(this.isOpen ? 'OFF' : 'ON', -12, 25);

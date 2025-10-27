@@ -7,8 +7,8 @@ export class Battery extends DraggableComponent {
         this.height = 40;
         this.voltage = voltage;
         this.terminals = [
-            { x: 0, y: 0, type: 'positive' },           // left (positive)
-            { x: this.width, y: 0, type: 'negative' }   // right (negative)
+            { x: 0, y: 0, type: 'positive' },           // leva (poz.)
+            { x: this.width, y: 0, type: 'negative' }   // desna (neg.)
         ];
     }
 
@@ -35,19 +35,19 @@ export class Battery extends DraggableComponent {
         ctx.strokeStyle = '#000';
         ctx.lineWidth = 2;
 
-        // positive terminal (long line)
+        // dolga linija (pozitivni terminal)
         ctx.beginPath();
         ctx.moveTo(-20, -15);
         ctx.lineTo(-20, 15);
         ctx.stroke();
 
-        // negative terminal (short line)
+        // kratka linija (negativni terminal)
         ctx.beginPath();
         ctx.moveTo(20, -10);
         ctx.lineTo(20, 10);
         ctx.stroke();
 
-        // connection lines
+        // povezovalne linije
         ctx.beginPath();
         ctx.moveTo(-40, 0);
         ctx.lineTo(-20, 0);
@@ -55,14 +55,14 @@ export class Battery extends DraggableComponent {
         ctx.lineTo(40, 0);
         ctx.stroke();
 
-        // labels
+        // oznake
         ctx.fillStyle = '#000';
         ctx.font = '14px Arial';
         ctx.fillText('+', -30, -20);
         ctx.fillText('-', 25, -20);
         ctx.fillText(`${this.voltage}V`, -15, 35);
 
-        // terminal dots
+        // pike na terminalih
         ctx.fillStyle = '#FF0000';
         ctx.beginPath();
         ctx.arc(-40, 0, 4, 0, Math.PI * 2);

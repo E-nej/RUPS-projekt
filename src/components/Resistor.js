@@ -34,7 +34,7 @@ export class Resistor extends DraggableComponent {
         ctx.strokeStyle = '#000';
         ctx.lineWidth = 2;
 
-        // resistor symbol
+        // simbol upora
         ctx.beginPath();
         ctx.moveTo(-40, 0);
         ctx.lineTo(-20, 0);
@@ -46,12 +46,12 @@ export class Resistor extends DraggableComponent {
         ctx.lineTo(40, 0);
         ctx.stroke();
 
-        // label
+        // oznaka
         ctx.fillStyle = '#000';
         ctx.font = '12px Arial';
         ctx.fillText(`${this.resistance}Ω`, -15, 25);
 
-        // terminal dots
+        // pike na terminalih
         ctx.fillStyle = '#888';
         ctx.beginPath();
         ctx.arc(-40, 0, 4, 0, Math.PI * 2);
