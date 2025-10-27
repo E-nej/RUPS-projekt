@@ -1,4 +1,4 @@
-import { DraggableComponent } from './DraggableComponent';
+import { DraggableComponent } from './baseComponents';
 
 export class Resistor extends DraggableComponent {
     constructor(x, y, resistance = 100) {

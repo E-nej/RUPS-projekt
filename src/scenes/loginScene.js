@@ -100,7 +100,7 @@ export default class LoginScene extends Phaser.Scene {
             password.remove();
         });
 
-        localStorage.clear();
+        //localStorage.clear();
 
 
         // this.input.keyboard.on('keydown-ESC', () => {
