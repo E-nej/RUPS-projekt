@@ -11,14 +11,15 @@ import ScoreboardScene from './scenes/scoreboardScene';
 
 const config = {
   type: Phaser.AUTO,            
-  width: 800,                    
-  height: 600,                   
+  width: window.innerWidth,                    
+  height: window.innerHeight,                   
   backgroundColor: '#f4f6fa',    
   parent: 'game-container',      
   scene: [
     // uvoz scen
     MenuScene,
     LabScene,
+    WorkspaceScene,
     PreloadScene,
     UIScene,
     LoginScene,
