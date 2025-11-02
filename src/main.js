@@ -8,6 +8,7 @@ import MenuScene from './scenes/menuScene';
 import LabScene from './scenes/labScene';
 import LoginScene from './scenes/loginScene';
 import ScoreboardScene from './scenes/scoreboardScene';
+import WorkspaceScene from './scenes/workspaceScene';
 
 const config = {
   type: Phaser.AUTO,            
@@ -33,10 +34,11 @@ const config = {
     }
   },
   scale: {
-    mode: Phaser.Scale.FIT,      
+    mode: Phaser.Scale.RESIZE,      
     autoCenter: Phaser.Scale.CENTER_BOTH
   }
 };
 
-
-new Phaser.Game(config);
+// inicializacija igre
+const game = new Phaser.Game(config);
+export default game;

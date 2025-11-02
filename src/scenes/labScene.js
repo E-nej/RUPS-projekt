@@ -120,7 +120,7 @@ export default class LabScene extends Phaser.Scene {
         color: '#222'
     });
 
-    const logoutButton = this.add.text(this.scale.width / 2, 665, 'Odjavi se', {
+    const logoutButton = this.add.text(this.scale.width / 2, 750, 'Odjavi se', {
         fontFamily: 'Arial',
         fontSize: '18px',
         color: '#0066ff',

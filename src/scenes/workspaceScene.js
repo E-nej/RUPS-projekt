@@ -6,6 +6,15 @@ export default class WorkspaceScene extends Phaser.Scene {
     super('WorkspaceScene');
   }
 
+  preload() {
+    this.load.image('baterija', 'src/components/battery.png');
+    this.load.image('upor', 'src/components/resistor.png');
+    this.load.image('svetilka', 'src/components/lamp.png');
+    this.load.image('stikalo-on', 'src/components/switch-on.png');
+    this.load.image('stikalo-off', 'src/components/switch-off.png');
+    this.load.image('žica', 'src/components/wire.png');
+    }
+
   create() {
     const { width, height } = this.cameras.main;
 
@@ -14,7 +23,83 @@ export default class WorkspaceScene extends Phaser.Scene {
     
     // mreža na mizi
     this.createGrid();
+
+    // stranska vrstica na levi
+    const panelWidth = 150;
+    this.add.rectangle(0, 0, panelWidth, height, 0x565656).setOrigin(0);
+    this.add.rectangle(0, 0, panelWidth, height, 0x000000, 0.3).setOrigin(0);
     
+    this.add.text(panelWidth / 2, 30, 'Komponente', {
+      fontSize: '18px',
+      color: '#ffffff',
+      fontStyle: 'bold'
+    }).setOrigin(0.5);
+    
+    // komponente v stranski vrstici
+    this.createComponent(panelWidth / 2, 120, 'baterija', 0xffcc00);
+    this.createComponent(panelWidth / 2, 200, 'upor', 0xff6600);
+    this.createComponent(panelWidth / 2, 280, 'svetilka', 0xff0000);
+    this.createComponent(panelWidth / 2, 360, 'stikalo-on', 0x666666);
+    this.createComponent(panelWidth / 2, 440, 'stikalo-off', 0x666666);
+    this.createComponent(panelWidth / 2, 520, 'žica', 0x0066cc);
+    
+    const backButton = this.add.rectangle(panelWidth / 2, height - 40, 120, 40, 0x4a4a4a)
+      .setInteractive({ useHandCursor: true });
+    const backText = this.add.text(panelWidth / 2, height - 40, 'Nazaj', {
+      fontSize: '16px',
+      color: '#ffffff'
+    }).setOrigin(0.5);
+    
+    backButton.on('pointerdown', () => {
+      this.cameras.main.fade(300, 0, 0, 0);
+      this.time.delayedCall(300, () => {
+        this.scene.start('LabScene');
+      });
+    });
+    
+    backButton.on('pointerover', () => {
+      backButton.setFillStyle(0x5a5a5a);
+    });
+    
+    backButton.on('pointerout', () => {
+      backButton.setFillStyle(0x4a4a4a);
+    });
+    
+    this.add.text(width / 2 + 50, 30, 'Povleci komponente na mizo in zgradi svoj električni krog!', {
+      fontSize: '20px',
+      color: '#333',
+      fontStyle: 'bold',
+      backgroundColor: '#ffffff88',
+      padding: { x: 15, y: 8 }
+    }).setOrigin(0.5);
+    
+    // shrani komponente na mizi
+    this.placedComponents = [];
+    this.gridSize = 40;
+
+    const scoreButton = this.add.text(this.scale.width / 1.1, 25, 'Lestvica', {
+        fontFamily: 'Arial',
+        fontSize: '18px',
+        color: '#0066ff',
+        backgroundColor: '#e1e9ff',
+        padding: { x: 20, y: 10 }
+    })
+        .setOrigin(0.5)
+        .setInteractive({ useHandCursor: true })
+        .on('pointerover', () => scoreButton.setStyle({ color: '#0044cc' }))
+        .on('pointerout', () => scoreButton.setStyle({ color: '#0066ff' }))
+        .on('pointerdown', () => {
+            this.scene.start('ScoreboardScene');
+            // localStorage.removeItem('username');
+            // this.scene.start('MenuScene');
+        });
+
+    // this.input.keyboard.on('keydown-ESC', () => {
+    //     this.scene.start('MenuScene');
+    // });
+
+    //console.log(`${localStorage.getItem('username')}`);
+    console.log(JSON.parse(localStorage.getItem('users')));
   }
 
   createGrid() {
@@ -58,44 +143,32 @@ export default class WorkspaceScene extends Phaser.Scene {
     
     // različne oblike glede na komponento
     let shape;
+    let componentImage;
+
     switch(type) {
       case 'baterija':
-        shape = this.add.rectangle(0, 0, 50, 30, color);
-        shape.setStrokeStyle(2, 0x000000);
-        const plus = this.add.text(10, 0, '+', { fontSize: '20px', color: '#000', fontStyle: 'bold' }).setOrigin(0.5);
-        const minus = this.add.text(-10, 0, '-', { fontSize: '20px', color: '#000', fontStyle: 'bold' }).setOrigin(0.5);
-        component.add([shape, plus, minus]);
+        componentImage = this.add.image(0, 0, 'baterija').setOrigin(0.5).setDisplaySize(100, 100);
+        component.add(componentImage);
         break;
       case 'upor':
-        shape = this.add.rectangle(0, 0, 60, 15, color);
-        shape.setStrokeStyle(2, 0x000000);
-        const zigzag = this.add.graphics();
-        zigzag.lineStyle(2, 0x000000);
-        zigzag.beginPath();
-        zigzag.moveTo(-20, -5);
-        zigzag.lineTo(-10, 5);
-        zigzag.lineTo(0, -5);
-        zigzag.lineTo(10, 5);
-        zigzag.lineTo(20, -5);
-        zigzag.strokePath();
-        component.add([shape, zigzag]);
+        componentImage = this.add.image(0, 0, 'upor').setOrigin(0.5).setDisplaySize(100, 100);
+        component.add(componentImage);
         break;
       case 'svetilka':
-        shape = this.add.circle(0, 0, 15, color);
-        shape.setStrokeStyle(2, 0x000000);
-        const triangle = this.add.triangle(0, 0, -5, -5, -5, 5, 5, 0, 0x000000);
-        component.add([shape, triangle]);
+        componentImage = this.add.image(0, 0, 'svetilka').setOrigin(0.5).setDisplaySize(100, 100);
+        component.add(componentImage);
         break;
-      case 'stikalo':
-        shape = this.add.rectangle(0, 0, 50, 20, color);
-        shape.setStrokeStyle(2, 0x000000);
-        const lever = this.add.rectangle(0, -10, 4, 20, 0xffffff);
-        component.add([shape, lever]);
+      case 'stikalo-on':
+        componentImage = this.add.image(0, 0, 'stikalo-on').setOrigin(0.5).setDisplaySize(100, 100);
+        component.add(componentImage);
+        break;
+      case 'stikalo-off':
+        componentImage = this.add.image(0, 0, 'stikalo-off').setOrigin(0.5).setDisplaySize(100, 100);
+        component.add(componentImage);
         break;
       case 'žica':
-        shape = this.add.rectangle(0, 0, 60, 8, color);
-        shape.setStrokeStyle(2, 0x000000);
-        component.add(shape);
+        componentImage = this.add.image(0, 0, 'žica').setOrigin(0.5).setDisplaySize(100, 100);
+        component.add(componentImage);
         break;
     }
     
@@ -117,6 +190,7 @@ export default class WorkspaceScene extends Phaser.Scene {
     component.setData('type', type);
     component.setData('color', color);
     component.setData('isInPanel', true);
+    component.setData('rotation', 0);
     
     this.input.setDraggable(component);
     
@@ -156,6 +230,21 @@ export default class WorkspaceScene extends Phaser.Scene {
         component.x = component.getData('originalX');
         component.y = component.getData('originalY');
       }
+    });
+
+    component.on('pointerdown', (pointer) => {
+        if (!component.getData('isInPanel')) {
+            const currentRotation = component.getData('rotation');
+            const newRotation = (currentRotation + 90);
+            component.setData('rotation', newRotation);
+
+            this.tweens.add({
+                targets: component,
+                angle: newRotation,
+                duration: 150,
+                ease: 'Cubic.easeOut'
+            });
+        }
     });
     
     // hover efekt
