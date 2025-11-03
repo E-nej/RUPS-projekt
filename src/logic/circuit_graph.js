@@ -1,6 +1,6 @@
-import { Component } from './component.js';
+import { Component } from '../components/component.js';
 import { Node } from './node.js';
-import { Wire } from './wire.js';
+import { Wire } from '../components/wire.js';
 
 class CircuitGraph {
     constructor() {

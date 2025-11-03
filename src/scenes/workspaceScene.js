@@ -1,5 +1,10 @@
 import Phaser from 'phaser';
 import LabScene from './labScene';
+import { Battery } from '../components/battery';
+import { Bulb } from '../components/bulb';
+import { Wire } from '../components/wire';
+import { CircuitGraph } from '../logic/circuit_graph';
+import { Node } from '../logic/node';
 
 export default class WorkspaceScene extends Phaser.Scene {
   constructor() {
@@ -7,6 +12,8 @@ export default class WorkspaceScene extends Phaser.Scene {
   }
 
   preload() {
+    this.graph = new CircuitGraph();
+
     this.load.image('baterija', 'src/components/battery.png');
     this.load.image('upor', 'src/components/resistor.png');
     this.load.image('svetilka', 'src/components/lamp.png');
@@ -138,15 +145,25 @@ export default class WorkspaceScene extends Phaser.Scene {
     return { x: snappedX, y: snappedY };
   }
 
+  getRandomInt(min, max) {
+    const minCeiled = Math.ceil(min);
+    const maxFloored = Math.floor(max);
+    return Math.floor(Math.random() * (maxFloored - minCeiled) + minCeiled); // The maximum is exclusive and the minimum is inclusive
+  }
+
   createComponent(x, y, type, color) {
     const component = this.add.container(x, y);
     
     // različne oblike glede na komponento
     let shape;
+    let comp;
     let componentImage;
+    let id;
 
     switch(type) {
       case 'baterija':
+        id = "bat_" + String(this.getRandomInt(1000, 9999));
+        comp = new Battery(id, 3.3)
         componentImage = this.add.image(0, 0, 'baterija').setOrigin(0.5).setDisplaySize(100, 100);
         component.add(componentImage);
         break;
@@ -155,6 +172,8 @@ export default class WorkspaceScene extends Phaser.Scene {
         component.add(componentImage);
         break;
       case 'svetilka':
+        id = "bulb_" + String(this.getRandomInt(1000, 9999))
+        comp = new Bulb(id, new Node(id + 'start'), new Node(id + 'end'))
         componentImage = this.add.image(0, 0, 'svetilka').setOrigin(0.5).setDisplaySize(100, 100);
         component.add(componentImage);
         break;
@@ -167,6 +186,8 @@ export default class WorkspaceScene extends Phaser.Scene {
         component.add(componentImage);
         break;
       case 'žica':
+        id = "wire_" + String(this.getRandomInt(1000, 9999))
+        comp = new Wire(id, new Node(id + 'start'), new Node(id + 'end'))
         componentImage = this.add.image(0, 0, 'žica').setOrigin(0.5).setDisplaySize(100, 100);
         component.add(componentImage);
         break;
