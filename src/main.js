@@ -7,20 +7,26 @@ import PreloadScene from './scenes/preloadScene';
 import MenuScene from './scenes/menuScene';
 import LabScene from './scenes/labScene';
 import TestScene from './scenes/testScene';
+import LoginScene from './scenes/loginScene';
+import ScoreboardScene from './scenes/scoreboardScene';
+import WorkspaceScene from './scenes/workspaceScene';
 
 const config = {
   type: Phaser.AUTO,            
-  width: 800,                    
-  height: 600,                   
+  width: window.innerWidth,                    
+  height: window.innerHeight,                   
   backgroundColor: '#f4f6fa',    
   parent: 'game-container',      
   scene: [
     // uvoz scen
     MenuScene,
     LabScene,
+    WorkspaceScene,
     PreloadScene,
     UIScene,
-    TestScene
+    TestScene,
+    LoginScene,
+    ScoreboardScene
   ],
   physics: {
     default: 'arcade',           
@@ -30,10 +36,11 @@ const config = {
     }
   },
   scale: {
-    mode: Phaser.Scale.FIT,      
+    mode: Phaser.Scale.RESIZE,      
     autoCenter: Phaser.Scale.CENTER_BOTH
   }
 };
 
-
-new Phaser.Game(config);
+// inicializacija igre
+const game = new Phaser.Game(config);
+export default game;
