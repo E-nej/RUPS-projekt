@@ -23,6 +23,10 @@ export default class MenuScene extends Phaser.Scene {
     create() {
         const { width, height } = this.scale;
 
+        this.children.removeAll(true); // odstrani vse objekte iz prejsnje scene
+        this.fixedComponents = [];
+        this.isSwitchOn = false;
+
         // ozdaje
         this.createDeskBackground(width, height);
 
@@ -66,7 +70,7 @@ export default class MenuScene extends Phaser.Scene {
             this.scene.start('LabScene');
             return;
         } 
-        
+
         // komponente
         this.createComponents(width, height, rectX, rectY);
         this.hideComponents();
