@@ -5,6 +5,10 @@ export default class ScoreboardScene extends Phaser.Scene {
         super('ScoreboardScene');
     }
 
+        init(data) {
+        this.cameFromMenu = data.cameFromMenu || false;
+    }
+
         preload() {
         this.load.image('avatar1', 'src/avatars/avatar1.png');
         this.load.image('avatar2', 'src/avatars/avatar2.png');
@@ -57,11 +61,18 @@ export default class ScoreboardScene extends Phaser.Scene {
 
 
         this.input.keyboard.on('keydown-ESC', () => {
-            this.scene.start('LabScene');
+            if(this.cameFromMenu) {
+                this.scene.start('LabScene');
+            }
+            else {
+                this.scene.start('LabScene');
+            }
+            
         });
 
 
-        const backButton = this.add.text(this.scale.width / 2, 560, 'Nazaj', {
+        if(!this.cameFromMenu) {
+            const backButton = this.add.text(this.scale.width / 2, 560, 'Nazaj', {
             fontFamily: 'Arial',
             fontSize: '18px',
             color: '#0066ff',
@@ -73,8 +84,9 @@ export default class ScoreboardScene extends Phaser.Scene {
             .on('pointerover', () => backButton.setStyle({ color: '#0044cc' }))
             .on('pointerout', () => backButton.setStyle({ color: '#0066ff' }))
             .on('pointerdown', () => {
-                this.scene.start('LabScene');
+                this.scene.start('WorkspaceScene');
             });
+        }
 
 
 
