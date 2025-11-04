@@ -26,6 +26,8 @@ export default class WorkspaceScene extends Phaser.Scene {
     this.load.image('stikalo-on', 'src/components/switch-on.png');
     this.load.image('stikalo-off', 'src/components/switch-off.png');
     this.load.image('žica', 'src/components/wire.png');
+    this.load.image('ampermeter', 'src/components/ammeter.png');
+    this.load.image('voltmeter', 'src/components/voltmeter.png');
   }
 
   create() {
@@ -126,12 +128,14 @@ export default class WorkspaceScene extends Phaser.Scene {
     }).setOrigin(0.5);
 
     // komponente v stranski vrstici
-    this.createComponent(panelWidth / 2, 120, 'baterija', 0xffcc00);
-    this.createComponent(panelWidth / 2, 200, 'upor', 0xff6600);
-    this.createComponent(panelWidth / 2, 280, 'svetilka', 0xff0000);
-    this.createComponent(panelWidth / 2, 360, 'stikalo-on', 0x666666);
-    this.createComponent(panelWidth / 2, 440, 'stikalo-off', 0x666666);
-    this.createComponent(panelWidth / 2, 520, 'žica', 0x0066cc);
+    this.createComponent(panelWidth / 2, 100, 'baterija', 0xffcc00);
+    this.createComponent(panelWidth / 2, 180, 'upor', 0xff6600);
+    this.createComponent(panelWidth / 2, 260, 'svetilka', 0xff0000);
+    this.createComponent(panelWidth / 2, 340, 'stikalo-on', 0x666666);
+    this.createComponent(panelWidth / 2, 420, 'stikalo-off', 0x666666);
+    this.createComponent(panelWidth / 2, 500, 'žica', 0x0066cc);
+    this.createComponent(panelWidth / 2, 580, 'ampermeter', 0x00cc66);
+    this.createComponent(panelWidth / 2, 660, 'voltmeter', 0x00cc66);
 
     const backButton = this.add.rectangle(panelWidth / 2, height - 40, 120, 40, 0x4a4a4a)
       .setInteractive({ useHandCursor: true });
@@ -154,11 +158,12 @@ export default class WorkspaceScene extends Phaser.Scene {
     backButton.on('pointerout', () => {
       backButton.setFillStyle(0x4a4a4a);
     });
-
-    this.add.text(width / 2 + 50, 30, 'Povleci komponente na mizo in zgradi svoj električni krog!', {
+    
+    this.add.text(width / 2 + 50, 30, 'Povleci komponente na mizo in zgradi svoj električni krog!\nNamig: dvojni klik na komponento, da jo obrneš.', {
       fontSize: '20px',
       color: '#333',
       fontStyle: 'bold',
+      align: 'center',
       backgroundColor: '#ffffff88',
       padding: { x: 15, y: 8 }
     }).setOrigin(0.5);
@@ -352,6 +357,22 @@ export default class WorkspaceScene extends Phaser.Scene {
         component.add(componentImage);
         component.setData('logicComponent', comp)
         break;
+      case 'ampermeter':
+        id = "ammeter_" + this.getRandomInt(1000, 9999);
+        componentImage = this.add.image(0, 0, 'ampermeter')
+          .setOrigin(0.5)
+          .setDisplaySize(100, 100);
+        component.add(componentImage);
+        component.setData('logicComponent', NONE)
+        break;
+      case 'voltmeter':
+        id = "voltmeter_" + this.getRandomInt(1000, 9999);
+        componentImage = this.add.image(0, 0, 'voltmeter')
+          .setOrigin(0.5)
+          .setDisplaySize(100, 100);
+        component.add(componentImage);
+        component.setData('logicComponent', NONE)
+        break;  
     }
 
     // 🔴 Add debug dots only if component has start/end nodes
@@ -376,6 +397,7 @@ export default class WorkspaceScene extends Phaser.Scene {
     component.setSize(70, 70);
     component.setInteractive({ draggable: true, useHandCursor: true });
 
+    // shrani originalno pozicijo in tip
     component.setData('originalX', x);
     component.setData('originalY', y);
     component.setData('type', type);
@@ -383,8 +405,13 @@ export default class WorkspaceScene extends Phaser.Scene {
     component.setData('isInPanel', true);
     component.setData('rotation', 0);
     if (comp) component.setData('logicComponent', comp);
+    component.setData('isDragging', false);
 
     this.input.setDraggable(component);
+
+    component.on('dragstart', () => {
+      component.setData('isDragging', true);
+    });
 
     component.on('drag', (pointer, dragX, dragY) => {
       component.x = dragX;
@@ -395,8 +422,10 @@ export default class WorkspaceScene extends Phaser.Scene {
       const isInPanel = component.x < 200;
 
       if (isInPanel && !component.getData('isInPanel')) {
+        // če je ob strani, se odstrani
         component.destroy();
       } else if (!isInPanel && component.getData('isInPanel')) {
+        // s strani na mizo
         const snapped = this.snapToGrid(component.x, component.y);
         component.x = snapped.x;
         component.y = snapped.y;
@@ -426,6 +455,7 @@ export default class WorkspaceScene extends Phaser.Scene {
         this.placedComponents.push(component);
 
       } else if (!component.getData('isInPanel')) {
+        // na mizi in se postavi na mrežo
         const snapped = this.snapToGrid(component.x, component.y);
         component.x = snapped.x;
         component.y = snapped.y;
@@ -433,12 +463,17 @@ export default class WorkspaceScene extends Phaser.Scene {
         this.updateLogicNodePositions(component);
 
       } else {
+        // postavi se nazaj na originalno mesto
         component.x = component.getData('originalX');
         component.y = component.getData('originalY');
 
         this.updateLogicNodePositions(component);
 
       }
+
+      this.time.delayedCall(500, () => {
+        component.setData('isDragging', false);
+      });
     });
 
     component.on('pointerdown', () => {
@@ -456,10 +491,15 @@ export default class WorkspaceScene extends Phaser.Scene {
         });
       }
     });
-
-    // Hover effect
-    component.on('pointerover', () => component.setScale(1.1));
-    component.on('pointerout', () => component.setScale(1));
+    
+    // hover efekt
+    component.on('pointerover', () => {
+      component.setScale(1.1);
+    });
+    
+    component.on('pointerout', () => {
+      component.setScale(1);
+    });
   }
 
 
