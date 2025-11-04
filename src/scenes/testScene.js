@@ -1,9 +1,9 @@
 import Phaser from 'phaser';
 import { CircuitGraph } from '../logic/circuit_graph.js';
-import { Battery } from '../logic/battery.js';
-import { Component } from '../logic/component.js';
+import { Battery } from '../components/battery.js';
+import { Component } from '../components/component.js';
 import { Node } from '../logic/node.js';
-import { Wire } from '../logic/wire.js';
+import { Wire } from '../components/wire.js';
 
 export default class TestScene extends Phaser.Scene {
     constructor() {
