@@ -65,10 +65,11 @@ export default class WorkspaceScene extends Phaser.Scene {
       backButton.setFillStyle(0x4a4a4a);
     });
     
-    this.add.text(width / 2 + 50, 30, 'Povleci komponente na mizo in zgradi svoj električni krog!', {
+    this.add.text(width / 2 + 50, 30, 'Povleci komponente na mizo in zgradi svoj električni krog!\nNamig: dvojni klik na komponento, da jo obrneš.', {
       fontSize: '20px',
       color: '#333',
       fontStyle: 'bold',
+      align: 'center',
       backgroundColor: '#ffffff88',
       padding: { x: 15, y: 8 }
     }).setOrigin(0.5);
@@ -191,8 +192,13 @@ export default class WorkspaceScene extends Phaser.Scene {
     component.setData('color', color);
     component.setData('isInPanel', true);
     component.setData('rotation', 0);
+    component.setData('isDragging', false);
     
     this.input.setDraggable(component);
+
+    component.on('dragstart', () => {
+      component.setData('isDragging', true);
+    });
     
     component.on('drag', (pointer, dragX, dragY) => {
       component.x = dragX;
@@ -230,12 +236,17 @@ export default class WorkspaceScene extends Phaser.Scene {
         component.x = component.getData('originalX');
         component.y = component.getData('originalY');
       }
+
+      this.time.delayedCall(500, () => {
+        component.setData('isDragging', false);
+      });
     });
 
     component.on('pointerdown', (pointer) => {
-        if (!component.getData('isInPanel')) {
+      this.time.delayedCall(500, () => {
+        if (!component.getData('isInPanel') && !component.getData('isDragging')) {
             const currentRotation = component.getData('rotation');
-            const newRotation = (currentRotation + 90);
+            const newRotation = (currentRotation + 90) % 360;
             component.setData('rotation', newRotation);
 
             this.tweens.add({
@@ -245,6 +256,7 @@ export default class WorkspaceScene extends Phaser.Scene {
                 ease: 'Cubic.easeOut'
             });
         }
+      });
     });
     
     // hover efekt
