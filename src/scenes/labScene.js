@@ -148,7 +148,7 @@ export default class LabScene extends Phaser.Scene {
         .on('pointerover', () => scoreButton.setStyle({ color: '#0044cc' }))
         .on('pointerout', () => scoreButton.setStyle({ color: '#0066ff' }))
         .on('pointerdown', () => {
-            this.scene.start('ScoreboardScene');
+            this.scene.start('ScoreboardScene', {cameFromMenu: true});
             // localStorage.removeItem('username');
             // this.scene.start('MenuScene');
         });

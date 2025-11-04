@@ -11,6 +11,12 @@ export default class WorkspaceScene extends Phaser.Scene {
     super('WorkspaceScene');
   }
 
+
+  init() {
+    const savedIndex = localStorage.getItem('currentChallengeIndex');
+    this.currentChallengeIndex = savedIndex !== null ? parseInt(savedIndex) : 0;
+  }
+
   preload() {
     this.graph = new CircuitGraph();
 
@@ -20,28 +26,105 @@ export default class WorkspaceScene extends Phaser.Scene {
     this.load.image('stikalo-on', 'src/components/switch-on.png');
     this.load.image('stikalo-off', 'src/components/switch-off.png');
     this.load.image('žica', 'src/components/wire.png');
-    }
+  }
 
   create() {
     const { width, height } = this.cameras.main;
 
     // površje mize
     this.add.rectangle(0, 0, width, height, 0xa0826d).setOrigin(0);
-    
+
     // mreža na mizi
     this.createGrid();
+
+    this.challenges = [
+      {
+        prompt: 'Sestavi preprosti električni krog z baterijo in svetilko.',
+        requiredComponents: ['baterija', 'svetilka', 'žica', 'žica', 'žica', 'žica', 'žica', 'žica'],
+        theory: ['Osnovni električni krog potrebuje vir, to je v našem primeru baterija. Potrebuje tudi porabnike, to je svetilka. Električni krog je v našem primeru sklenjen, kar je nujno potrebno, da električni tok teče preko prevodnikov oziroma žic.']
+      },
+      {
+        prompt: 'Sestavi preprosti nesklenjeni električni krog z baterijo, svetilko in stikalom.',
+        requiredComponents: ['baterija', 'svetilka', 'žica', 'stikalo-off'],
+        theory: ['V nesklenjenem krogu je stikalo odprto, kar pomeni, da je električni tok prekinjen. Svetilka posledično zato ne sveti. Stikalo si predstavljaj kot vrata - kadar so odprta, tok ne teče.']
+      },
+      {
+        prompt: 'Sestavi preprosti sklenjeni električni krog z baterijo, svetilko in stikalom.',
+        requiredComponents: ['baterija', 'svetilka', 'žica', 'stikalo-on'],
+        theory: ['V sklenjenem krogu je stikalo zaprto, kar pomeni, da lahko električni tok teče neovirano. Torej v tem primeru so vrata zaprta.']
+      },
+      {
+        prompt: 'Sestavi električni krog z baterijo, svetilko in stikalom, ki ga lahko ugašaš in prižigaš.',
+        requiredComponents: ['baterija', 'svetilka', 'žica', 'stikalo-on', 'stikalo-off'],
+        theory: ['Stikalo nam omogoča nadzor nad pretokom električnega toka. Ko je stikalo zaprto, tok teče in posledično svetilka sveti. Kadar pa je stikalo odprto, tok ne teče in se svetilka ugasne. To lahko primerjamo z vklapljanjem in izklapljanjem električnih naprav v naših domovih.']
+      },
+      {
+        prompt: 'Sestavi krog z dvema baterijama in svetilko. ',
+        requiredComponents: ['baterija', 'baterija', 'svetilka', 'žica'],
+        theory: ['Kadar vežemo dve ali več baterij zaporedno, se napetosti seštevajo. Večja je napetost, večji je električni tok. V našem primeru zato svetilka sveti močneje.']
+      },
+      {
+        prompt: 'V električni krog zaporedno poveži dve svetilki, ki ju priključiš na baterijo. ',
+        requiredComponents: ['baterija', 'svetilka', 'svetilka', 'žica'],
+        theory: ['V zaporedni vezavi teče isti električni tok skozi vse svetilke. Napetost baterije se porazdeli. Če imamo primer, da ena svetilka preneha delovati, bo ta prekinila tok skozi drugo svetilko.']
+      },
+
+      {
+        prompt: 'V električni krog vzporedno poveži dve svetilki, ki ju priključiš na baterijo. ',
+        requiredComponents: ['baterija', 'svetilka', 'svetilka', 'žica'],
+        theory: ['V vzporedni vezavi ima vsaka svetilka enako napetost kot baterija. Eletrični tok se porazdeli med svetilkami. Če ena svetilka preneha delovati, bo druga še vedno delovala.']
+      },
+      {
+        prompt: 'Sestavi električni krog s svetilko in uporom. ',
+        requiredComponents: ['baterija', 'svetilka', 'žica', 'upor'],
+        theory: ['Upor omejuje tok v krogu. Večji kot je upor, manjši je tok. Spoznajmo Ohmov zakon: tok (I) = napetost (U) / upornost (R). Svetilka bo svetila manj intenzivno, saj skozi njo teče manjši tok.']
+      },
+      
+    ];
+
+    // this.currentChallengeIndex = 0;
+
+    this.promptText = this.add.text(width / 2, height - 30, this.challenges[this.currentChallengeIndex].prompt, {
+      fontSize: '20px',
+      color: '#333',
+      fontStyle: 'bold',
+      backgroundColor: '#ffffff88',
+      padding: { x: 15, y: 8 }
+    }).setOrigin(0.5);
+
+    this.checkText = this.add.text(width / 2, height - 70, '', {
+      fontSize: '18px',
+      color: '#cc0000',
+      fontStyle: 'bold',
+      padding: { x: 15, y: 8 }
+    }).setOrigin(0.5);
+
+    const checkButton = this.add.text(this.scale.width / 1.2, 25, 'Preveri krog', {
+      fontFamily: 'Arial',
+      fontSize: '18px',
+      color: '#0066ff',
+      backgroundColor: '#e1e9ff',
+      padding: { x: 20, y: 10 }
+    }).setOrigin(0.5)
+      .setInteractive({ useHandCursor: true })
+      .on('pointerover', () => checkButton.setStyle({ color: '#0044cc' }))
+      .on('pointerout', () => checkButton.setStyle({ color: '#0066ff' }))
+      .on('pointerdown', () => {
+        this.checkCircuit();
+      });
+
 
     // stranska vrstica na levi
     const panelWidth = 150;
     this.add.rectangle(0, 0, panelWidth, height, 0x565656).setOrigin(0);
     this.add.rectangle(0, 0, panelWidth, height, 0x000000, 0.3).setOrigin(0);
-    
+
     this.add.text(panelWidth / 2, 30, 'Komponente', {
       fontSize: '18px',
       color: '#ffffff',
       fontStyle: 'bold'
     }).setOrigin(0.5);
-    
+
     // komponente v stranski vrstici
     this.createComponent(panelWidth / 2, 120, 'baterija', 0xffcc00);
     this.createComponent(panelWidth / 2, 200, 'upor', 0xff6600);
@@ -49,29 +132,29 @@ export default class WorkspaceScene extends Phaser.Scene {
     this.createComponent(panelWidth / 2, 360, 'stikalo-on', 0x666666);
     this.createComponent(panelWidth / 2, 440, 'stikalo-off', 0x666666);
     this.createComponent(panelWidth / 2, 520, 'žica', 0x0066cc);
-    
+
     const backButton = this.add.rectangle(panelWidth / 2, height - 40, 120, 40, 0x4a4a4a)
       .setInteractive({ useHandCursor: true });
     const backText = this.add.text(panelWidth / 2, height - 40, 'Nazaj', {
       fontSize: '16px',
       color: '#ffffff'
     }).setOrigin(0.5);
-    
+
     backButton.on('pointerdown', () => {
       this.cameras.main.fade(300, 0, 0, 0);
       this.time.delayedCall(300, () => {
         this.scene.start('LabScene');
       });
     });
-    
+
     backButton.on('pointerover', () => {
       backButton.setFillStyle(0x5a5a5a);
     });
-    
+
     backButton.on('pointerout', () => {
       backButton.setFillStyle(0x4a4a4a);
     });
-    
+
     this.add.text(width / 2 + 50, 30, 'Povleci komponente na mizo in zgradi svoj električni krog!', {
       fontSize: '20px',
       color: '#333',
@@ -79,43 +162,43 @@ export default class WorkspaceScene extends Phaser.Scene {
       backgroundColor: '#ffffff88',
       padding: { x: 15, y: 8 }
     }).setOrigin(0.5);
-    
+
     // shrani komponente na mizi
     this.placedComponents = [];
     this.gridSize = 40;
 
     const scoreButton = this.add.text(this.scale.width / 1.1, 25, 'Lestvica', {
-        fontFamily: 'Arial',
-        fontSize: '18px',
-        color: '#0066ff',
-        backgroundColor: '#e1e9ff',
-        padding: { x: 20, y: 10 }
+      fontFamily: 'Arial',
+      fontSize: '18px',
+      color: '#0066ff',
+      backgroundColor: '#e1e9ff',
+      padding: { x: 20, y: 10 }
     })
-        .setOrigin(0.5)
-        .setInteractive({ useHandCursor: true })
-        .on('pointerover', () => scoreButton.setStyle({ color: '#0044cc' }))
-        .on('pointerout', () => scoreButton.setStyle({ color: '#0066ff' }))
-        .on('pointerdown', () => {
-            this.scene.start('ScoreboardScene');
-            // localStorage.removeItem('username');
-            // this.scene.start('MenuScene');
-        });
+      .setOrigin(0.5)
+      .setInteractive({ useHandCursor: true })
+      .on('pointerover', () => scoreButton.setStyle({ color: '#0044cc' }))
+      .on('pointerout', () => scoreButton.setStyle({ color: '#0066ff' }))
+      .on('pointerdown', () => {
+        this.scene.start('ScoreboardScene', { cameFromMenu: false });
+        // localStorage.removeItem('username');
+        // this.scene.start('MenuScene');
+      });
 
     const simulate = this.add.text(this.scale.width / 1.1, 25, 'Simulacija', {
-        fontFamily: 'Arial',
-        fontSize: '18px',
-        color: '#0066ff',
-        backgroundColor: '#e1e9ff',
-        padding: { x: 20, y: 10 }
+      fontFamily: 'Arial',
+      fontSize: '18px',
+      color: '#0066ff',
+      backgroundColor: '#e1e9ff',
+      padding: { x: 20, y: 10 }
     })
-        .setOrigin(0.5, -1)
-        .setInteractive({ useHandCursor: true })
-        .on('pointerover', () => scoreButton.setStyle({ color: '#0044cc' }))
-        .on('pointerout', () => scoreButton.setStyle({ color: '#0066ff' }))
-        .on('pointerdown', () => {
-            console.log(this.graph);
-            this.graph.simulate();
-        });
+      .setOrigin(0.5, -1)
+      .setInteractive({ useHandCursor: true })
+      .on('pointerover', () => scoreButton.setStyle({ color: '#0044cc' }))
+      .on('pointerout', () => scoreButton.setStyle({ color: '#0066ff' }))
+      .on('pointerdown', () => {
+        console.log(this.graph);
+        this.graph.simulate();
+      });
 
     // this.input.keyboard.on('keydown-ESC', () => {
     //     this.scene.start('MenuScene');
@@ -129,10 +212,10 @@ export default class WorkspaceScene extends Phaser.Scene {
     const { width, height } = this.cameras.main;
     const gridGraphics = this.add.graphics();
     gridGraphics.lineStyle(2, 0x8b7355, 0.4);
-    
+
     const gridSize = 40;
     const startX = 200;
-    
+
     // vertikalne črte
     for (let x = startX; x < width; x += gridSize) {
       gridGraphics.beginPath();
@@ -140,7 +223,7 @@ export default class WorkspaceScene extends Phaser.Scene {
       gridGraphics.lineTo(x, height);
       gridGraphics.strokePath();
     }
-    
+
     // horizontalne črte
     for (let y = 0; y < height; y += gridSize) {
       gridGraphics.beginPath();
@@ -153,11 +236,11 @@ export default class WorkspaceScene extends Phaser.Scene {
   snapToGrid(x, y) {
     const gridSize = this.gridSize;
     const startX = 200;
-    
+
     // komponeta se postavi na presečišče
     const snappedX = Math.round((x - startX) / gridSize) * gridSize + startX;
     const snappedY = Math.round(y / gridSize) * gridSize;
-    
+
     return { x: snappedX, y: snappedY };
   }
 
@@ -174,21 +257,20 @@ export default class WorkspaceScene extends Phaser.Scene {
     let offsetY = 0;
     let offsetX = 40;
 
-    if (component.getData('isRotated'))
-    {
+    if (component.getData('isRotated')) {
       offsetX = 0;
       offsetY = 40;
     }
 
     if (comp.start) {
-        comp.start.x = component.x + offsetX; // store offsets in Node or Component
-        comp.start.y = component.y + offsetY;
-        this.graph.addNode(comp.start);
+      comp.start.x = component.x + offsetX; // store offsets in Node or Component
+      comp.start.y = component.y + offsetY;
+      this.graph.addNode(comp.start);
     }
     if (comp.end) {
-        comp.end.x = component.x + offsetX*-1;
-        comp.end.y = component.y + offsetY*-1;
-        this.graph.addNode(comp.end);
+      comp.end.x = component.x + offsetX * -1;
+      comp.end.y = component.y + offsetY * -1;
+      this.graph.addNode(comp.end);
     }
   }
 
@@ -222,7 +304,7 @@ export default class WorkspaceScene extends Phaser.Scene {
           .setOrigin(0.5)
           .setDisplaySize(100, 100);
         component.add(componentImage);
-        component.setData('logicComponent', NONE)
+        component.setData('logicComponent', comp)
         break;
 
       case 'svetilka':
@@ -245,7 +327,7 @@ export default class WorkspaceScene extends Phaser.Scene {
           .setOrigin(0.5)
           .setDisplaySize(100, 100);
         component.add(componentImage);
-        component.setData('logicComponent', NONE)
+        component.setData('logicComponent', comp)
         break;
 
       case 'stikalo-off':
@@ -254,7 +336,7 @@ export default class WorkspaceScene extends Phaser.Scene {
           .setOrigin(0.5)
           .setDisplaySize(100, 100);
         component.add(componentImage);
-        component.setData('logicComponent', NONE)
+        component.setData('logicComponent', comp)
         break;
 
       case 'žica':
@@ -332,7 +414,7 @@ export default class WorkspaceScene extends Phaser.Scene {
         this.updateLogicNodePositions(component);
 
         component.setData('isRotated', false);
-        component.setData('isInPanel', false);  
+        component.setData('isInPanel', false);
 
         this.createComponent(
           component.getData('originalX'),
@@ -341,7 +423,8 @@ export default class WorkspaceScene extends Phaser.Scene {
           component.getData('color')
         );
 
-        this.placedComponents.push(component);        
+        this.placedComponents.push(component);
+
       } else if (!component.getData('isInPanel')) {
         const snapped = this.snapToGrid(component.x, component.y);
         component.x = snapped.x;
@@ -379,6 +462,124 @@ export default class WorkspaceScene extends Phaser.Scene {
     component.on('pointerout', () => component.setScale(1));
   }
 
+
+  checkCircuit() {
+    const currentChallenge = this.challenges[this.currentChallengeIndex];
+    const placedTypes = this.placedComponents.map(comp => comp.getData('type'));
+    console.log("components", placedTypes);
+    // preverjas ce so vse komponente na mizi
+    if (!currentChallenge.requiredComponents.every(req => placedTypes.includes(req))) {
+      this.checkText.setText('Manjkajo komponente za krog.');
+      return;
+    }
+
+    // je pravilna simulacija 
+
+
+    // je zaprt krog
+
+    this.checkText.setText('Čestitke! Krog je pravilen.');
+    this.addPoints(10);
+
+    if (currentChallenge.theory) {
+      this.showTheory(currentChallenge.theory);
+    }
+    else {
+      this.checkText.setText('Čestitke! Krog je pravilen.');
+      this.addPoints(10);
+      this.time.delayedCall(2000, () => this.nextChallenge());
+    }
+    // this.placedComponents.forEach(comp => comp.destroy());
+    // this.placedComponents = [];
+    // this.time.delayedCall(2000, () => this.nextChallenge());
+    // const isCorrect = currentChallenge.requiredComponents.every(req => placedTypes.includes(req));
+    // if (isCorrect) {
+    //   this.checkText.setText('Čestitke! Krog je pravilen.');
+    //   this.addPoints(10);
+    //   this.time.delayedCall(2000, () => this.nextChallenge());
+    // }
+    // else {
+    //   this.checkText.setText('Krog ni pravilen. Poskusi znova.');
+    // }
+  }
+
+  nextChallenge() {
+    this.currentChallengeIndex++;
+    localStorage.setItem('currentChallengeIndex', this.currentChallengeIndex.toString());
+    this.checkText.setText('');
+
+    if (this.currentChallengeIndex < this.challenges.length) {
+      this.promptText.setText(this.challenges[this.currentChallengeIndex].prompt);
+    }
+    else {
+      this.promptText.setText('Vse naloge so uspešno opravljene! Čestitke!');
+      localStorage.removeItem('currentChallengeIndex');
+    }
+  }
+
+  addPoints(points) {
+    const user = localStorage.getItem('username');
+    const users = JSON.parse(localStorage.getItem('users')) || [];
+    const userData = users.find(u => u.username === user);
+    if (userData) {
+      userData.score = (userData.score || 0) + points;
+    }
+    localStorage.setItem('users', JSON.stringify(users));
+  }
+
+  showTheory(theoryText) {
+    const { width, height } = this.cameras.main;
+
+    this.theoryBack = this.add.rectangle(width / 2, height / 2, width - 100, 150, 0x000000, 0.8)
+      .setOrigin(0.5)
+      .setDepth(10);
+
+    this.theoryText = this.add.text(width / 2, height / 2, theoryText, {
+      fontSize: '16px',
+      color: '#ffffff',
+      fontStyle: 'bold',
+      align: 'center',
+      wordWrap: { width: width - 150 }
+    })
+      .setOrigin(0.5)
+      .setDepth(11);
+
+    this.continueButton = this.add.text(width / 2, height / 2 + 70, 'Nadaljuj', {
+      fontSize: '18px',
+      color: '#0066ff',
+      backgroundColor: '#ffffff',
+      padding: { x: 20, y: 10 }
+    })
+      .setOrigin(0.5)
+      .setDepth(11)
+      .setInteractive({ useHandCursor: true })
+      .on('pointerover', () => this.continueButton.setStyle({ color: '#0044cc' }))
+      .on('pointerout', () => this.continueButton.setStyle({ color: '#0066ff' }))
+      .on('pointerdown', () => {
+        this.hideTheory();
+        this.placedComponents.forEach(comp => comp.destroy());
+        this.placedComponents = [];
+        this.nextChallenge();
+      });
+
+
+  }
+
+  hideTheory() {
+    if (this.theoryBack) {
+      this.theoryBack.destroy();
+      this.theoryBack = null;
+    }
+    if (this.theoryText) {
+      this.theoryText.destroy();
+      this.theoryText = null;
+    }
+    if (this.continueButton) {
+      this.continueButton.destroy();
+      this.continueButton = null;
+    }
+  }
+
 }
 
 const config = {
@@ -388,7 +589,7 @@ const config = {
   parent: 'game-container',
   backgroundColor: '#f0f0f0',
   scale: {
-    mode: Phaser.Scale.RESIZE,            
+    mode: Phaser.Scale.RESIZE,
     autoCenter: Phaser.Scale.CENTER_BOTH
   },
   scene: [LabScene, WorkspaceScene],
