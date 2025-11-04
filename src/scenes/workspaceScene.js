@@ -20,6 +20,8 @@ export default class WorkspaceScene extends Phaser.Scene {
     this.load.image('stikalo-on', 'src/components/switch-on.png');
     this.load.image('stikalo-off', 'src/components/switch-off.png');
     this.load.image('žica', 'src/components/wire.png');
+    this.load.image('ampermeter', 'src/components/ammeter.png');
+    this.load.image('voltmeter', 'src/components/voltmeter.png');
     }
 
   create() {
@@ -43,12 +45,14 @@ export default class WorkspaceScene extends Phaser.Scene {
     }).setOrigin(0.5);
     
     // komponente v stranski vrstici
-    this.createComponent(panelWidth / 2, 120, 'baterija', 0xffcc00);
-    this.createComponent(panelWidth / 2, 200, 'upor', 0xff6600);
-    this.createComponent(panelWidth / 2, 280, 'svetilka', 0xff0000);
-    this.createComponent(panelWidth / 2, 360, 'stikalo-on', 0x666666);
-    this.createComponent(panelWidth / 2, 440, 'stikalo-off', 0x666666);
-    this.createComponent(panelWidth / 2, 520, 'žica', 0x0066cc);
+    this.createComponent(panelWidth / 2, 100, 'baterija', 0xffcc00);
+    this.createComponent(panelWidth / 2, 180, 'upor', 0xff6600);
+    this.createComponent(panelWidth / 2, 260, 'svetilka', 0xff0000);
+    this.createComponent(panelWidth / 2, 340, 'stikalo-on', 0x666666);
+    this.createComponent(panelWidth / 2, 420, 'stikalo-off', 0x666666);
+    this.createComponent(panelWidth / 2, 500, 'žica', 0x0066cc);
+    this.createComponent(panelWidth / 2, 580, 'ampermeter', 0x00cc66);
+    this.createComponent(panelWidth / 2, 660, 'voltmeter', 0x00cc66);
     
     const backButton = this.add.rectangle(panelWidth / 2, height - 40, 120, 40, 0x4a4a4a)
       .setInteractive({ useHandCursor: true });
@@ -271,6 +275,22 @@ export default class WorkspaceScene extends Phaser.Scene {
         component.add(componentImage);
         component.setData('logicComponent', comp)
         break;
+      case 'ampermeter':
+        id = "ammeter_" + this.getRandomInt(1000, 9999);
+        componentImage = this.add.image(0, 0, 'ampermeter')
+          .setOrigin(0.5)
+          .setDisplaySize(100, 100);
+        component.add(componentImage);
+        component.setData('logicComponent', NONE)
+        break;
+      case 'voltmeter':
+        id = "voltmeter_" + this.getRandomInt(1000, 9999);
+        componentImage = this.add.image(0, 0, 'voltmeter')
+          .setOrigin(0.5)
+          .setDisplaySize(100, 100);
+        component.add(componentImage);
+        component.setData('logicComponent', NONE)
+        break;  
     }
 
     // 🔴 Add debug dots only if component has start/end nodes
