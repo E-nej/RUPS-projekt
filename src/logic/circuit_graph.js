@@ -1,34 +1,81 @@
-import { Component } from '../components/component.js';
-import { Node } from './node.js';
-import { Wire } from '../components/wire.js';
-
 class CircuitGraph {
     constructor() {
         this.nodes = new Map();
         this.components = [];
     }
 
+    // addNode(node) {
+    //     if (!this.nodes.has(node.id)) {
+    //         this.nodes.set(node.id, new Set());
+    //     }
+    // }
+
+    // addNode(node) {
+    //     if (!this.nodes.has(node.id)) {
+    //         this.nodes.set(node.id, node); // store Node object
+    //     } else {
+    //         // Node exists → update its x/y position and keep connections
+    //         const existingNode = this.nodes.get(node.id);
+    //         existingNode.x = node.x;
+    //         existingNode.y = node.y;
+
+    //         // Optional: merge connected nodes/wires if needed
+    //         node.connected.forEach((value, key) => {
+    //             existingNode.connected.set(key, value);
+    //         });
+    //     }
+    // }
     addNode(node) {
-        if (!this.nodes.has(node.id)) {
-            this.nodes.set(node.id, new Set());
+        // Try to find an existing node at (or very near) this position
+        for (const existingNode of this.nodes.values()) {
+            const dx = existingNode.x - node.x;
+            const dy = existingNode.y - node.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            if (distance < 5) { // within 5 pixels = same node
+                // merge connections into existing node
+                for (const comp of node.connected ?? []) {
+                    existingNode.connected.add(comp);
+                }
+                console.log(node.id + " is existing Node")
+                return existingNode;
+            }
         }
+
+        // otherwise it's a new unique node
+        if (!node.connected) {
+            console.log(node.id + " is new Node")
+            node.connected = new Set();
+        }
+        this.nodes.set(node.id, node);
+        return node;
     }
+
 
     addComponent(component) {
         // Make sure both nodes exist
         console.log(`Adding component: ${component} from ${component.start.id} to ${component.end.id}`);
-        this.addNode(component.start);
-        this.addNode(component.end);
+        // this.addNode(component.start);
+        // this.addNode(component.end);
+
+        // this.components.push(component);
+
+        // const startNode = this.nodes.get(component.start.id);
+        // const endNode = this.nodes.get(component.end.id);
+
+        // startNode.connected.add(component);
+        // endNode.connected.add(component);
+        component.start = this.addNode(component.start);
+        component.end = this.addNode(component.end);
 
         this.components.push(component);
 
-        // Bidirectional (since electricity can flow either way)
-        this.nodes.get(component.start.id).add(component);
-        // this.nodes.get(component.end.id).add(component);
+        component.start.connected.add(component);
+        component.end.connected.add(component);
     }
 
     getConnections(node) {
-        return this.nodes.get(node.id) || new Set();
+    const n = this.nodes.get(node.id);
+    return n ? n.connected : new Set();
     }
 
     // Helper: check if a component conducts
@@ -39,6 +86,8 @@ class CircuitGraph {
 
     // Depth-First Search to check for closed loop
     hasClosedLoop(start, end, visited = new Set()) {
+        console.log(start);
+        console.log(end);
         if (start === end && visited.size > 0) return true;
         visited.add(start);
 

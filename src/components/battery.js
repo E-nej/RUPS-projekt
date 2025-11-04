@@ -2,9 +2,10 @@ import { Node } from '../logic/node.js';
 import { Component } from './component.js';
 
 class Battery extends Component {
-    constructor(id, voltage) {
-        super(id, 'battery', new Node(`${id}_pos`), new Node(`${id}_neg`), 'src/components/battery.png', true);
+    constructor(id, start, end, voltage) {
+        super(id, 'battery', start, end, 'src/components/battery.png', true);
         this.voltage = voltage;
+        this.debug_color = 0x00ff00;
     }
 }
 

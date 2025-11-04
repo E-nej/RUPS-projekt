@@ -9,6 +9,7 @@ class Component {
         this.end = end;
         this.isVoltageSource = isVoltageSource;
         this.image = image
+        this.debug_color = 0xff0000
     }
 
     conducts(){
