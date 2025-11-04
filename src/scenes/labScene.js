@@ -110,24 +110,42 @@ export default class LabScene extends Phaser.Scene {
 
     const username = localStorage.getItem('username');
     const pfp = localStorage.getItem('profilePic');
-    console.log(pfp);
-    this.add.image(160, 24, pfp)
-        .setDisplaySize(40, 40)
-        .setOrigin(0.5);
-    this.add.text(200, 10, `Dobrodošel v laboratoriju, uporabnik ${username}!`, {
-        fontFamily: 'Arial',
-        fontSize: '24px',
-        color: '#222'
+
+    // avvatar
+    const avatarX = 230;
+    const avatarY = 55;
+    const avatarRadius = 30;
+    const borderThickness = 4;
+
+    // zunanji siv krog (rob)
+    const borderCircle = this.add.circle(avatarX, avatarY, avatarRadius + borderThickness, 0xcccccc);
+
+    // notranji bel krog (ozadje za avatar)
+    const innerCircle = this.add.circle(avatarX, avatarY, avatarRadius, 0xffffff);
+
+    // slika avatarja
+    const avatarImage = this.add.image(avatarX, avatarY, pfp)
+        .setDisplaySize(avatarRadius * 2, avatarRadius * 2);
+
+    // maska, da je slika samo znotraj notranjega kroga
+    const mask = innerCircle.createGeometryMask();
+    avatarImage.setMask(mask);
+
+    // pozdravno besedilo
+    this.add.text(avatarX + 60, avatarY - 10, `Dobrodošel v laboratoriju, uporabnik ${username}!`, {
+        fontSize: '22px',
+        color: '#222',
+        fontStyle: 'bold'
     });
 
-    const logoutButton = this.add.text(this.scale.width / 2, 750, 'Odjavi se', {
+
+    const logoutButton = this.add.text(40, 30, '↩ Odjavi se', {
         fontFamily: 'Arial',
-        fontSize: '18px',
+        fontSize: '20px',
         color: '#0066ff',
-        backgroundColor: '#e1e9ff',
         padding: { x: 20, y: 10 }
     })
-        .setOrigin(0.5)
+        .setOrigin(0, 0)
         .setInteractive({ useHandCursor: true })
         .on('pointerover', () => logoutButton.setStyle({ color: '#0044cc' }))
         .on('pointerout', () => logoutButton.setStyle({ color: '#0066ff' }))
@@ -136,21 +154,36 @@ export default class LabScene extends Phaser.Scene {
             this.scene.start('MenuScene');
         });
 
-    const scoreButton = this.add.text(this.scale.width / 1.1, 25, 'Lestvica', {
+    const buttonWidth = 180;
+    const buttonHeight = 45;
+    const cornerRadius = 10;
+    const rightMargin = 60;
+    const topMargin = 40;
+
+    // za scoreboard
+    const scoreButtonBg = this.add.graphics();
+    scoreButtonBg.fillStyle(0x3399ff, 1);
+    scoreButtonBg.fillRoundedRect(width - buttonWidth - rightMargin, topMargin, buttonWidth, buttonHeight, cornerRadius);
+
+    const scoreButton = this.add.text(width - buttonWidth / 2 - rightMargin, topMargin + buttonHeight / 2, 'Lestvica', {
         fontFamily: 'Arial',
-        fontSize: '18px',
-        color: '#0066ff',
-        backgroundColor: '#e1e9ff',
-        padding: { x: 20, y: 10 }
+        fontSize: '20px',
+        color: '#ffffff'
     })
         .setOrigin(0.5)
         .setInteractive({ useHandCursor: true })
-        .on('pointerover', () => scoreButton.setStyle({ color: '#0044cc' }))
-        .on('pointerout', () => scoreButton.setStyle({ color: '#0066ff' }))
+        .on('pointerover', () => {
+            scoreButtonBg.clear();
+            scoreButtonBg.fillStyle(0x0f5cad, 1);
+            scoreButtonBg.fillRoundedRect(width - buttonWidth - rightMargin, topMargin, buttonWidth, buttonHeight, cornerRadius);
+        })
+        .on('pointerout', () => {
+            scoreButtonBg.clear();
+            scoreButtonBg.fillStyle(0x3399ff, 1);
+            scoreButtonBg.fillRoundedRect(width - buttonWidth - rightMargin, topMargin, buttonWidth, buttonHeight, cornerRadius);
+        })
         .on('pointerdown', () => {
-            this.scene.start('ScoreboardScene', {cameFromMenu: true});
-            // localStorage.removeItem('username');
-            // this.scene.start('MenuScene');
+            this.scene.start('ScoreboardScene');
         });
 
     // this.input.keyboard.on('keydown-ESC', () => {
