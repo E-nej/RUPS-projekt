@@ -5,25 +5,84 @@ export default class ScoreboardScene extends Phaser.Scene {
         super('ScoreboardScene');
     }
 
-        init(data) {
+    init(data) {
         this.cameFromMenu = data.cameFromMenu || false;
     }
 
-        preload() {
-        this.load.image('avatar1', 'src/avatars/avatar1.png');
-        this.load.image('avatar2', 'src/avatars/avatar2.png');
-        this.load.image('avatar3', 'src/avatars/avatar3.png');
-        this.load.image('avatar4', 'src/avatars/avatar4.png');
+    preload() {
+        // avatarji
+        for (let i = 1; i <= 14; i++) {
+            this.load.image(`avatar${i}`, `src/avatars/avatar${i}.png`);
+        }
     }
-    
-    create() {
-        this.add.text(200, 0, 'Lestvica', {
-            fontFamily: 'Arial',
-            fontSize: '24px',
-            color: '#222'
-        });
 
-        //console.log(JSON.parse(localStorage.getItem('users')));
+    create() {
+        const { width, height } = this.scale;
+
+        // ozadje
+        // svetla stena
+        this.add.rectangle(0, 0, width, height - 150, 0xe8e8e8).setOrigin(0);
+        // tla
+        this.add.rectangle(0, height - 150, width, 150, 0xd4c4a8).setOrigin(0);
+
+        // miza
+        const tableX = width / 2;
+        const tableY = height / 2 + 50;
+        const tableWidth = 600;
+        const tableHeight = 280;
+
+        this.add.rectangle(tableX, tableY, tableWidth, 30, 0x8b4513).setOrigin(0.5);
+        const surface = this.add.rectangle(tableX, tableY + 15, tableWidth - 30, tableHeight - 30, 0xa0826d).setOrigin(0.5, 0);
+
+        // mreža
+        const grid = this.add.graphics();
+        grid.lineStyle(1, 0x8b7355, 0.3);
+        const gridSize = 30;
+        const gridStartX = tableX - (tableWidth - 30) / 2;
+        const gridStartY = tableY + 15;
+        const gridEndX = tableX + (tableWidth - 30) / 2;
+        const gridEndY = tableY + 15 + (tableHeight - 30);
+
+        for (let x = gridStartX; x <= gridEndX; x += gridSize) {
+            grid.beginPath();
+            grid.moveTo(x, gridStartY);
+            grid.lineTo(x, gridEndY);
+            grid.strokePath();
+        }
+        for (let y = gridStartY; y <= gridEndY; y += gridSize) {
+            grid.beginPath();
+            grid.moveTo(gridStartX, y);
+            grid.lineTo(gridEndX, y);
+            grid.strokePath();
+        }
+
+        // nogice mize
+        const legWidth = 20;
+        const legHeight = 150;
+        this.add.rectangle(tableX - tableWidth / 2 + 40, tableY + tableHeight / 2 + 20, legWidth, legHeight, 0x654321);
+        this.add.rectangle(tableX + tableWidth / 2 - 40, tableY + tableHeight / 2 + 20, legWidth, legHeight, 0x654321);
+
+        // okvir
+        const panelWidth = 600;
+        const panelHeight = 400;
+        const panelX = width / 2 - panelWidth / 2;
+        const panelY = height / 2 - panelHeight / 2 - 30;
+
+        const panel = this.add.graphics();
+        panel.fillStyle(0xffffff, 0.92);
+        panel.fillRoundedRect(panelX, panelY, panelWidth, panelHeight, 25);
+        panel.lineStyle(3, 0xcccccc, 1);
+        panel.strokeRoundedRect(panelX, panelY, panelWidth, panelHeight, 25);
+
+        // naslov
+        this.add.text(width / 2, panelY + 35, 'LESTVICA', {
+            fontFamily: 'Arial',
+            fontSize: '36px',
+            fontStyle: 'bold',
+            color: '#222'
+        }).setOrigin(0.5);
+
+        // lestvica
         const users = JSON.parse(localStorage.getItem('users')) || [];
         const userLoged = localStorage.getItem('username');
 
@@ -34,49 +93,49 @@ export default class ScoreboardScene extends Phaser.Scene {
             localStorage.setItem('users', JSON.stringify(users));
         }
 
-        users.sort((a, b) => (b.score) - (a.score));
-        console.log(users);
+        users.sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
 
         users.forEach((user, index) => {
+            const y = panelY + 90 + index * 35;
+            const rank = index + 1;
 
-            const y = 100 + index * 40;
-            if(user.profilePic) {
-                this.add.image(150, y + 10, user.profilePic)
-                .setDisplaySize(40,40)
-                .setOrigin(0.5);
-            } 
-            else {
-                this.add.text(100,y + 10, 'NO PFP');
-            }
-            if (userLoged === user.username) {
-                this.add.text(250, y, user.username, { fontSize: '22px', color: 'black', fontStyle: 'bold' });
-            }
-            else {
-                this.add.text(250, y, user.username, { fontSize: '22px', color: 'black', fontStyle: 'normal' });
+            // avatar
+            if (user.profilePic) {
+                this.add.image(panelX + 60, y + 15, user.profilePic)
+                    .setDisplaySize(40, 40)
+                    .setOrigin(0.5);
             }
 
-            this.add.text(200, y, `${index + 1}`, { fontSize: '22px', color: 'gray' });
-            this.add.text(500, y, user.score ?? '—', { fontSize: '22px', color: '#0044cc' });
-        })
+            // mesto
+            this.add.text(panelX + 100, y + 5, `${rank}.`, { fontSize: '22px', color: '#444' });
 
+            // ime
+            const style = (user.username === userLoged)
+                ? { fontSize: '22px', color: '#0f5cad', fontStyle: 'bold' }
+                : { fontSize: '22px', color: '#222' };
+            this.add.text(panelX + 140, y + 5, user.username, style);
 
-        this.input.keyboard.on('keydown-ESC', () => {
-            if(this.cameFromMenu) {
-                this.scene.start('LabScene');
-            }
-            else {
-                this.scene.start('LabScene');
-            }
-            
+            // točke
+            this.add.text(panelX + panelWidth - 100, y + 5, `${user.score ?? 0}`, {
+                fontSize: '22px',
+                color: '#0044cc'
+            }).setOrigin(1, 0);
         });
 
+        // ESC tipka
+        this.input.keyboard.on('keydown-ESC', () => {
+            if (this.cameFromMenu) {
+                this.scene.start('LabScene');
+            } else {
+                this.scene.start('LabScene');
+            }
+        });
 
-        if(!this.cameFromMenu) {
-            const backButton = this.add.text(this.scale.width / 2, 560, 'Nazaj', {
+        // gumb
+        const backButton = this.add.text(width / 2, panelY + panelHeight - 40, '↩ Nazaj', {
             fontFamily: 'Arial',
-            fontSize: '18px',
+            fontSize: '22px',
             color: '#0066ff',
-            backgroundColor: '#e1e9ff',
             padding: { x: 20, y: 10 }
         })
             .setOrigin(0.5)
@@ -86,9 +145,5 @@ export default class ScoreboardScene extends Phaser.Scene {
             .on('pointerdown', () => {
                 this.scene.start('WorkspaceScene');
             });
-        }
-
-
-
     }
 }
