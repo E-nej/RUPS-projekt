@@ -65,7 +65,8 @@ export default class MenuScene extends Phaser.Scene {
         if (username) {
             this.scene.start('LabScene');
             return;
-
+        } 
+        
         // komponente
         this.createComponents(width, height, rectX, rectY);
         this.hideComponents();
