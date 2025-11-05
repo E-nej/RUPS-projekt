@@ -2,137 +2,148 @@ class CircuitGraph {
     constructor() {
         this.nodes = new Map();
         this.components = [];
+        this.MERGE_RADIUS = 25;
     }
 
-    // addNode(node) {
-    //     if (!this.nodes.has(node.id)) {
-    //         this.nodes.set(node.id, new Set());
-    //     }
-    // }
-
-    // addNode(node) {
-    //     if (!this.nodes.has(node.id)) {
-    //         this.nodes.set(node.id, node); // store Node object
-    //     } else {
-    //         // Node exists → update its x/y position and keep connections
-    //         const existingNode = this.nodes.get(node.id);
-    //         existingNode.x = node.x;
-    //         existingNode.y = node.y;
-
-    //         // Optional: merge connected nodes/wires if needed
-    //         node.connected.forEach((value, key) => {
-    //             existingNode.connected.set(key, value);
-    //         });
-    //     }
-    // }
     addNode(node) {
-        // Try to find an existing node at (or very near) this position
+        if (!node) return null;
+
+        if (!node.connected) node.connected = new Set();
+
         for (const existingNode of this.nodes.values()) {
             const dx = existingNode.x - node.x;
             const dy = existingNode.y - node.y;
-            const distance = Math.sqrt(dx * dx + dy * dy);
-            if (distance < 5) { // within 5 pixels = same node
-                // merge connections into existing node
-                for (const comp of node.connected ?? []) {
-                    existingNode.connected.add(comp);
-                }
-                console.log(node.id + " is existing Node")
+            const distance = Math.hypot(dx, dy);
+            if (distance < this.MERGE_RADIUS) {
+                node.connected.forEach(c => existingNode.connected.add(c));
+                existingNode.connected.add(node);
                 return existingNode;
             }
         }
 
-        // otherwise it's a new unique node
-        if (!node.connected) {
-            console.log(node.id + " is new Node")
-            node.connected = new Set();
-        }
         this.nodes.set(node.id, node);
         return node;
     }
 
-
     addComponent(component) {
-        // Make sure both nodes exist
-        console.log(`Adding component: ${component} from ${component.start.id} to ${component.end.id}`);
-        // this.addNode(component.start);
-        // this.addNode(component.end);
+        if (!component || !component.start || !component.end) return;
 
-        // this.components.push(component);
-
-        // const startNode = this.nodes.get(component.start.id);
-        // const endNode = this.nodes.get(component.end.id);
-
-        // startNode.connected.add(component);
-        // endNode.connected.add(component);
         component.start = this.addNode(component.start);
         component.end = this.addNode(component.end);
+
+        if (!component.start.connected) component.start.connected = new Set();
+        if (!component.end.connected) component.end.connected = new Set();
 
         this.components.push(component);
 
         component.start.connected.add(component);
         component.end.connected.add(component);
+
+        component.start.connected.add(component.end);
+        component.end.connected.add(component.start);
     }
+
 
     getConnections(node) {
-    const n = this.nodes.get(node.id);
-    return n ? n.connected : new Set();
+        return this.components.filter(comp =>
+            this.sameNode(comp.start, node) ||
+            this.sameNode(comp.end, node)
+        );
     }
 
-    // Helper: check if a component conducts
-    componentConducts(component) {
-        if (component.type === 'switch') return !component.options.open;
-        return true; // battery, wire, bulb all conduct
+
+    componentConducts(comp) {
+        if (!comp) return false;
+        const conductiveTypes = ['wire', 'bulb', 'resistor', 'battery'];
+        if (comp.type === 'switch') return comp.is_on;
+        return conductiveTypes.includes(comp.type);
     }
 
-    // Depth-First Search to check for closed loop
-    hasClosedLoop(start, end, visited = new Set()) {
-        console.log(start);
-        console.log(end);
-        if (start === end && visited.size > 0) return true;
-        visited.add(start);
 
-        for (const comp of this.getConnections(start)) {
-            if (!this.componentConducts(comp)) continue;
-            if (comp.type === 'battery' && visited.size < 2) continue; // avoid immediate loop back to battery
-            const next = comp.start === start ? comp.end : comp.start;
-            if (!visited.has(next)) {
-                if (this.hasClosedLoop(next, end, visited)) return true;
+    sameNode(a, b) {
+        return a && b && a.x === b.x && a.y === b.y;
+    }
+
+    hasClosedLoop(current, target, visitedNodes = new Set(), visitedComps = new Set()) {
+        if (!current || !target) return false;
+
+        if (this.sameNode(current, target) && visitedComps.size > 2) {
+            console.log("Loop closed between", current.id, "and", target.id);
+            return true;
+        }
+        console.log("Connections for", current.id, this.getConnections(current).map(c => c.id));
+
+        for (const comp of this.getConnections(current)) {
+            if (!this.componentConducts(comp) || visitedComps.has(comp)) continue;
+            visitedComps.add(comp);
+
+            let next = null;
+            if (visitedComps.size == 1 || this.sameNode(comp.start, current)) continue;
+            if (this.sameNode(comp.start, current)) next = comp.end;
+            else if (this.sameNode(comp.end, current)) next = comp.start;
+
+
+            if (!next) continue;
+            // allow revisiting the target to complete the loop
+            if (visitedNodes.has(next) && !this.sameNode(next, target)) continue;
+
+            visitedNodes.add(next);
+
+            if (next.type === 'switch' && !next.is_on) return false;
+
+            if (this.hasClosedLoop(next, target, visitedNodes, visitedComps)) {
+                return true;
             }
         }
+
+        console.log("dead end at", current.id);
+        if (current.type == "bulb")
+            current.is_on = false;
         return false;
     }
 
     simulate() {
         const battery = this.components.find(c => c.type === 'battery');
         if (!battery) {
-        console.log("❌ No battery found.");
-        return;
+            console.log("No battery found.");
+            return false;
         }
+
+        const switches = this.components.filter(c => c.type === 'switche');
+        switches.forEach(s => {
+            if (!s.is_on) {
+                console.log("Switch " + s.id + " is OFF");
+                return false;
+            }
+        })
 
         const start = battery.start;
         const end = battery.end;
 
+        for (const n of this.nodes.values()) {
+            console.log(`Node ${n.id}: (${n.x},${n.y}) connected to ${[...n.connected].map(c => c.id).join(',')}`);
+        }
+        console.log('----------------------------------------');
+
         const closed = this.hasClosedLoop(start, end);
 
         if (closed) {
-            console.log("✅ Circuit closed! Current flows.");
-            const bulb = this.components.find(c => c.type === 'bulb');
-            if (bulb) {
-                bulb.turnOn();
-            }
+            console.log("Circuit closed! Current flows.");
+            const bulbs = this.components.filter(c => c.type === 'bulb');
+            console.log(bulbs);
+            bulbs.forEach(b => {
+                if (b.is_on) console.log(`💡 Bulb ${b.id} is now ON.`);
+                else console.log(`💡 Bulb ${b.id} is now OFF.`)
+            });
+            return true;
         } else {
-            console.log("❌ Circuit open. No current flows.");
-            const bulb = this.components.find(c => c.type === 'bulb');
-            if (bulb) {
-                bulb.turnOff();
-            }
+            console.log("Circuit open. No current flows.");
+            const bulbs = this.components.filter(c => c.type === 'bulb');
+            bulbs.forEach(b => {
+                if (typeof b.turnOff === 'function') b.turnOff();
+            });
+            return false;
         }
-    }
-    lightBulbs() {
-        const bulbs = this.components.filter(c => c.type === 'bulb');
-        if (bulbs.length === 0) return console.log("No bulbs in circuit.");
-
-        bulbs.forEach((b, i) => console.log(`💡 Bulb ${i + 1} lights up.`));
     }
 }
 

@@ -1,10 +1,12 @@
-import Phaser, { NONE } from 'phaser';
+import Phaser from 'phaser';
 import LabScene from './labScene';
 import { Battery } from '../components/battery';
 import { Bulb } from '../components/bulb';
 import { Wire } from '../components/wire';
 import { CircuitGraph } from '../logic/circuit_graph';
 import { Node } from '../logic/node';
+import { Switch } from '../components/switch';
+import { Resistor } from '../components/resistor';
 
 export default class WorkspaceScene extends Phaser.Scene {
   constructor() {
@@ -201,44 +203,37 @@ export default class WorkspaceScene extends Phaser.Scene {
     this.placedComponents = [];
     this.gridSize = 40;
 
-    // const scoreButton = this.add.text(this.scale.width / 1.1, 25, 'Lestvica', {
-    //   fontFamily: 'Arial',
-    //   fontSize: '18px',
-    //   color: '#0066ff',
-    //   backgroundColor: '#e1e9ff',
-    //   padding: { x: 20, y: 10 }
-    // })
-    //   .setOrigin(0.5)
-    //   .setInteractive({ useHandCursor: true })
-    //   .on('pointerover', () => scoreButton.setStyle({ color: '#0044cc' }))
-    //   .on('pointerout', () => scoreButton.setStyle({ color: '#0066ff' }))
-    //   .on('pointerdown', () => {
-    //     this.scene.start('ScoreboardScene', { cameFromMenu: false });
-    //     // localStorage.removeItem('username');
-    //     // this.scene.start('MenuScene');
-    //   });
+    const scoreButton = this.add.text(this.scale.width / 1.1, 25, 'Lestvica', {
+      fontFamily: 'Arial',
+      fontSize: '18px',
+      color: '#0066ff',
+      backgroundColor: '#e1e9ff',
+      padding: { x: 20, y: 10 }
+    })
+      .setOrigin(0.5)
+      .setInteractive({ useHandCursor: true })
+      .on('pointerover', () => scoreButton.setStyle({ color: '#0044cc' }))
+      .on('pointerout', () => scoreButton.setStyle({ color: '#0066ff' }))
+      .on('pointerdown', () => {
+        this.scene.start('ScoreboardScene');
+      });
 
-    // const simulate = this.add.text(this.scale.width / 1.1, 25, 'Simulacija', {
-    //   fontFamily: 'Arial',
-    //   fontSize: '18px',
-    //   color: '#0066ff',
-    //   backgroundColor: '#e1e9ff',
-    //   padding: { x: 20, y: 10 }
-    // })
-    //   .setOrigin(0.5, -1)
-    //   .setInteractive({ useHandCursor: true })
-    //   .on('pointerover', () => scoreButton.setStyle({ color: '#0044cc' }))
-    //   .on('pointerout', () => scoreButton.setStyle({ color: '#0066ff' }))
-    //   .on('pointerdown', () => {
-    //     console.log(this.graph);
-    //     this.graph.simulate();
-    //   });
+    const simulate = this.add.text(this.scale.width / 1.1, 25, 'Simulacija', {
+      fontFamily: 'Arial',
+      fontSize: '18px',
+      color: '#0066ff',
+      backgroundColor: '#e1e9ff',
+      padding: { x: 20, y: 10 }
+    })
+      .setOrigin(0.5, -1)
+      .setInteractive({ useHandCursor: true })
+      .on('pointerover', () => simulate.setStyle({ color: '#0044cc' }))
+      .on('pointerout', () => simulate.setStyle({ color: '#0066ff' }))
+      .on('pointerdown', () => {
+        console.log(this.graph);
+        this.graph.simulate();
+      });
 
-    // this.input.keyboard.on('keydown-ESC', () => {
-    //     this.scene.start('MenuScene');
-    // });
-
-    //console.log(`${localStorage.getItem('username')}`);
     console.log(JSON.parse(localStorage.getItem('users')));
   }
 
@@ -281,38 +276,99 @@ export default class WorkspaceScene extends Phaser.Scene {
   getRandomInt(min, max) {
     const minCeiled = Math.ceil(min);
     const maxFloored = Math.floor(max);
-    return Math.floor(Math.random() * (maxFloored - minCeiled) + minCeiled); // The maximum is exclusive and the minimum is inclusive
+    return Math.floor(Math.random() * (maxFloored - minCeiled) + minCeiled);
   }
 
+  // updateLogicNodePositions(component) {
+  //   const comp = component.getData('logicComponent');
+  //   if (!comp) return;
+
+  //   let offsetStart = {x: -280, y: -40};
+  //   let offsetEnd = {x: -200, y: -40};
+
+  //   // compute absolute positions of start/end nodes
+  //   if (comp.start) {
+  //     const snap = this.snapToGrid(component.x + offsetStart.x, component.y + offsetStart.y)
+  //     comp.start.x = snap.x;
+  //     comp.start.y = snap.y;
+  //     // this.graph.addNode(comp.start);
+  //   }
+  //   if (comp.end) {
+  //     const snap = this.snapToGrid(component.x + offsetEnd.x, component.y + offsetEnd.y)
+  //     comp.end.x = snap.x;
+  //     comp.end.y = snap.y;
+  //     // this.graph.addNode(comp.end);
+  //   }
+
+  //   // update debug dots if present
+  //   const startDot = component.getData('startDot');
+  //   const endDot = component.getData('endDot');
+  //   if (startDot && comp.start) {
+  //     console.log(comp.type + " START X: " + comp.start.x + " Y: " + comp.start.y);
+  //     startDot.x = comp.start.x;
+  //     startDot.y = comp.start.y;
+  //   }
+  //   if (endDot && comp.end) {
+  //     console.log(comp.type + " END X: " + comp.end.x + " Y: " + comp.end.y);
+  //     endDot.x = comp.end.x;
+  //     endDot.y = comp.end.y;
+  //     endDot.fillColor = 0xffff00;
+  //   }
+  // }
   updateLogicNodePositions(component) {
     const comp = component.getData('logicComponent');
     if (!comp) return;
 
-    let offsetY = 0;
-    let offsetX = 40;
+    // derive local offsets: prefer comp-local offsets, else use half display
+    const halfW = 40;
+    const halfH = 40;
 
-    if (component.getData('isRotated')) {
-      offsetX = 0;
-      offsetY = 40;
-    }
+    const localStart = comp.localStart || { x: -halfW, y: 0 };
+    const localEnd = comp.localEnd || { x: halfW, y: 0 };
+
+    // get container angle in radians (Phaser keeps both .angle and .rotation)
+    const theta = (typeof component.rotation === 'number' && component.rotation) ? component.rotation : Phaser.Math.DegToRad(component.angle || 0);
+
+    const cos = Math.cos(theta);
+    const sin = Math.sin(theta);
+    const rotate = (p) => ({
+      x: Math.round(p.x * cos - p.y * sin),
+      y: Math.round(p.x * sin + p.y * cos)
+    });
+
+    const rStart = rotate(localStart);
+    const rEnd = rotate(localEnd);
+
+    const worldStart = { x: component.x + rStart.x, y: component.y + rStart.y };
+    const worldEnd = { x: component.x + rEnd.x, y: component.y + rEnd.y };
+
+    const snappedStart = this.snapToGrid(worldStart.x, worldStart.y);
+    const snappedEnd = this.snapToGrid(worldEnd.x, worldEnd.y);
 
     if (comp.start) {
-      comp.start.x = component.x + offsetX; // store offsets in Node or Component
-      comp.start.y = component.y + offsetY;
+      comp.start.x = snappedStart.x;
+      comp.start.y = snappedStart.y;
+      if (!comp.start.connected) comp.start.connected = new Set();
       this.graph.addNode(comp.start);
     }
     if (comp.end) {
-      comp.end.x = component.x + offsetX * -1;
-      comp.end.y = component.y + offsetY * -1;
+      comp.end.x = snappedEnd.x;
+      comp.end.y = snappedEnd.y;
+      if (!comp.end.connected) comp.end.connected = new Set();
       this.graph.addNode(comp.end);
     }
+
+    // debug dots are top-level objects (not children). update their positions
+    const startDot = component.getData('startDot');
+    const endDot = component.getData('endDot');
+    if (startDot && comp.start) { startDot.x = comp.start.x; startDot.y = comp.start.y; }
+    if (endDot && comp.end) { endDot.x = comp.end.x; endDot.y = comp.end.y; }
   }
 
   createComponent(x, y, type, color) {
     const component = this.add.container(x, y);
 
-    let comp;
-    const offset = 40;
+    let comp = null;
     let componentImage;
     let id;
 
@@ -325,15 +381,27 @@ export default class WorkspaceScene extends Phaser.Scene {
           new Node(id + '_end', 40, 0),
           3.3
         );
+        comp.type = 'battery';
+        comp.localStart = { x: -40, y: 0 };
+        comp.localEnd = { x: 40, y: 0 };
         componentImage = this.add.image(0, 0, 'baterija')
           .setOrigin(0.5)
           .setDisplaySize(100, 100);
         component.add(componentImage);
-        component.setData('logicComponent', comp)
+        component.setData('logicComponent', comp);
         break;
 
       case 'upor':
         id = "res_" + this.getRandomInt(1000, 9999);
+        comp = new Resistor(
+          id,
+          new Node(id + '_start', -40, 0),
+          new Node(id + '_end', 40, 0),
+          1.5
+        )
+        comp.type = 'resistor';
+        comp.localStart = { x: -40, y: 0 };
+        comp.localEnd = { x: 40, y: 0 };
         componentImage = this.add.image(0, 0, 'upor')
           .setOrigin(0.5)
           .setDisplaySize(100, 100);
@@ -348,15 +416,28 @@ export default class WorkspaceScene extends Phaser.Scene {
           new Node(id + '_start', -40, 0),
           new Node(id + '_end', 40, 0)
         );
+        comp.type = 'bulb';
+        comp.localStart = { x: -40, y: 0 };
+        comp.localEnd = { x: 40, y: 0 };
         componentImage = this.add.image(0, 0, 'svetilka')
           .setOrigin(0.5)
           .setDisplaySize(100, 100);
         component.add(componentImage);
-        component.setData('logicComponent', comp)
+        component.setData('logicComponent', comp);
         break;
 
       case 'stikalo-on':
         id = "switch_" + this.getRandomInt(1000, 9999);
+        comp = new Switch(
+          id,
+          new Node(id + "_start", -40, 0),
+          new Node(id + "_end", 40, 0),
+          true
+        )
+        comp.type = 'switch';
+        comp.localStart = { x: -40, y: 0 };
+        comp.localEnd = { x: 40, y: 0 };
+        // For switches we don't yet create a logic component; could create a Switch class later
         componentImage = this.add.image(0, 0, 'stikalo-on')
           .setOrigin(0.5)
           .setDisplaySize(100, 100);
@@ -366,6 +447,15 @@ export default class WorkspaceScene extends Phaser.Scene {
 
       case 'stikalo-off':
         id = "switch_" + this.getRandomInt(1000, 9999);
+        comp = new Switch(
+          id,
+          new Node(id + "_start", -40, 0),
+          new Node(id + "_end", 40, 0),
+          false
+        )
+        comp.type = 'switch';
+        comp.localStart = { x: -40, y: 0 };
+        comp.localEnd = { x: 40, y: 0 };
         componentImage = this.add.image(0, 0, 'stikalo-off')
           .setOrigin(0.5)
           .setDisplaySize(100, 100);
@@ -380,11 +470,14 @@ export default class WorkspaceScene extends Phaser.Scene {
           new Node(id + '_start', -40, 0),
           new Node(id + '_end', 40, 0)
         );
+        comp.type = 'wire';
+        comp.localStart = { x: -40, y: 0 };
+        comp.localEnd = { x: 40, y: 0 };
         componentImage = this.add.image(0, 0, 'žica')
           .setOrigin(0.5)
           .setDisplaySize(100, 100);
         component.add(componentImage);
-        component.setData('logicComponent', comp)
+        component.setData('logicComponent', comp);
         break;
       case 'ampermeter':
         id = "ammeter_" + this.getRandomInt(1000, 9999);
@@ -404,15 +497,14 @@ export default class WorkspaceScene extends Phaser.Scene {
         break;  
     }
 
-    // 🔴 Add debug dots only if component has start/end nodes
-    if (comp && comp.start && comp.end) {
-      const startDot = this.add.circle(comp.start.x, comp.start.y, 5, comp.debug_color ?? 0xff0000);
-      const endDot = this.add.circle(comp.end.x, comp.end.y, 5, comp.debug_color ?? 0xff0000);
-      component.add(startDot);
-      component.add(endDot);
-      component.setData('startDot', startDot);
-      component.setData('endDot', endDot);
-    }
+    // if (comp && comp.start && comp.end) {
+    //   const startDot = this.add.circle(comp.start.x, comp.start.y, 5, comp.debug_color ?? 0xff0000);
+    //   const endDot = this.add.circle(comp.end.x, comp.end.y, 5, comp.debug_color ?? 0xff0000);
+    //   component.add(startDot);
+    //   component.add(endDot);
+    //   component.setData('startDot', startDot);
+    //   component.setData('endDot', endDot);
+    // }
 
     // Label
     const label = this.add.text(0, 30, type, {
@@ -453,27 +545,26 @@ export default class WorkspaceScene extends Phaser.Scene {
       if (isInPanel && !component.getData('isInPanel')) {
         // če je ob strani, se odstrani
         component.destroy();
-      } else if (!isInPanel && component.getData('isInPanel')) {
-        // s strani na mizo
+        return;
+      }
+      if (!isInPanel && component.getData('isInPanel')) {
+        // s strani na mizo: snap, update nodes, add to graph once
         const snapped = this.snapToGrid(component.x, component.y);
         component.x = snapped.x;
         component.y = snapped.y;
 
-        const comp = component.getData('logicComponent');
-        if (comp) {
-          console.log("Component: " + comp)
-          this.graph.addComponent(comp);
-
-          // Add start/end nodes to graph if they exist
-          if (comp.start) this.graph.addNode(comp.start);
-          if (comp.end) this.graph.addNode(comp.end);
-        }
-
         this.updateLogicNodePositions(component);
+
+        const comp = component.getData('logicComponent');
+        if (comp && !comp._addedToGraph) {
+          this.graph.addComponent(comp);
+          comp._addedToGraph = true;
+        }
 
         component.setData('isRotated', false);
         component.setData('isInPanel', false);
 
+        // recreate a new palette instance
         this.createComponent(
           component.getData('originalX'),
           component.getData('originalY'),
@@ -482,8 +573,8 @@ export default class WorkspaceScene extends Phaser.Scene {
         );
 
         this.placedComponents.push(component);
-
-      } else if (!component.getData('isInPanel')) {
+      }
+      if (!component.getData('isInPanel')) {
         // na mizi in se postavi na mrežo
         const snapped = this.snapToGrid(component.x, component.y);
         component.x = snapped.x;
@@ -497,7 +588,6 @@ export default class WorkspaceScene extends Phaser.Scene {
         component.y = component.getData('originalY');
 
         this.updateLogicNodePositions(component);
-
       }
 
       this.time.delayedCall(500, () => {
@@ -506,26 +596,46 @@ export default class WorkspaceScene extends Phaser.Scene {
     });
 
     component.on('pointerdown', () => {
-      if (!component.getData('isInPanel')) {
-        const currentRotation = component.getData('rotation');
-        const newRotation = (currentRotation + 90) % 360;
-        component.setData('rotation', newRotation);
-        component.setData('isRotated', !component.getData('isRotated'));
+      // if (!component.getData('isInPanel')) {
+      //   const currentRotation = component.getData('rotation');
+      //   const newRotation = (currentRotation + 90) % 360;
+      //   component.setData('rotation', newRotation);
+      //   component.setData('isRotated', !component.getData('isRotated'));
 
-        this.tweens.add({
-          targets: component,
-          angle: newRotation,
-          duration: 150,
-          ease: 'Cubic.easeOut',
-        });
-      }
+      //   this.tweens.add({
+      //     targets: component,
+      //     angle: newRotation,
+      //     duration: 150,
+      //     ease: 'Cubic.easeOut',
+      //   });
+
+      //   // update nodes after rotation
+      //   this.updateLogicNodePositions(component);
+      // }
+      if (component.getData('isInPanel')) return;
+
+      const currentRotation = component.getData('rotation') || 0;
+      const newRotation = (currentRotation + 90) % 360;
+      component.setData('rotation', newRotation);
+      component.setData('isRotated', (newRotation % 180) !== 0);
+
+      this.tweens.add({
+        targets: component,
+        angle: newRotation,
+        duration: 150,
+        ease: 'Cubic.easeOut',
+        onComplete: () => {
+          // update nodes using final angle/rotation
+          this.updateLogicNodePositions(component);
+        }
+      });
     });
-    
+
     // hover efekt
     component.on('pointerover', () => {
       component.setScale(1.1);
     });
-    
+
     component.on('pointerout', () => {
       component.setScale(1);
     });
