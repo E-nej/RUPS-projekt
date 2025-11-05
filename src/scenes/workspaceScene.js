@@ -51,6 +51,23 @@ export default class WorkspaceScene extends Phaser.Scene {
       gridGraphics.strokePath();
     }
 
+    this.infoWindow = this.add.container(0, 0);
+    this.infoWindow.setDepth(1000);
+    this.infoWindow.setVisible(false);
+    
+    // ozadje info okna
+    const infoBox = this.add.rectangle(0, 0, 200, 80, 0x2c2c2c, 0.95);
+    infoBox.setStrokeStyle(2, 0xffffff);
+    const infoText = this.add.text(0, 0, '', {
+        fontSize: '14px',
+        color: '#ffffff',
+        align: 'left',
+        wordWrap: { width: 180 }
+    }).setOrigin(0.5);
+    
+    this.infoWindow.add([infoBox, infoText]);
+    this.infoText = infoText;
+
     this.challenges = [
       {
         prompt: 'Sestavi preprosti električni krog z baterijo in svetilko.',
@@ -249,6 +266,20 @@ export default class WorkspaceScene extends Phaser.Scene {
     //   });
 
     console.log(JSON.parse(localStorage.getItem('users')));
+  }
+
+  getComponentDetails(type) {
+    const details = {
+        'baterija': 'Napetost: 3.3 V\nVir električne energije',
+        'upor': 'Uporabnost: omejuje tok\nMeri se v ohmih (Ω)',
+        'svetilka': 'Pretvarja električno energijo v svetlobo',
+        'stikalo-on': 'Dovoljuje pretok toka',
+        'stikalo-off': 'Prepreči pretok toka',
+        'žica': 'Povezuje komponente\nKlikni za obračanje',
+        'ampermeter': 'Meri električni tok\nEnota: amperi (A)',
+        'voltmeter': 'Meri električno napetost\nEnota: volti (V)'
+    };
+    return details[type] || 'Komponenta';
   }
 
   createGrid() {
@@ -473,6 +504,27 @@ export default class WorkspaceScene extends Phaser.Scene {
         component.setData('logicComponent', null)
         break;
     }
+
+    component.on('pointerover', () => {
+    if (component.getData('isInPanel')) {
+        // prikaži info okno
+        const details = this.getComponentDetails(type);
+        this.infoText.setText(details);
+        
+        // zraven komponente
+        this.infoWindow.x = x + 120;
+        this.infoWindow.y = y;
+        this.infoWindow.setVisible(true);
+    }
+    component.setScale(1.1);
+    });
+    
+    component.on('pointerout', () => {
+        if (component.getData('isInPanel')) {
+            this.infoWindow.setVisible(false);
+        }
+        component.setScale(1);
+    });
 
     // Label
     const label = this.add.text(0, 30, type, {
