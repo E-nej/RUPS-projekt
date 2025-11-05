@@ -98,7 +98,7 @@ export default class WorkspaceScene extends Phaser.Scene {
         requiredComponents: ['baterija', 'svetilka', 'žica', 'upor'],
         theory: ['Upor omejuje tok v krogu. Večji kot je upor, manjši je tok. Spoznajmo Ohmov zakon: tok (I) = napetost (U) / upornost (R). Svetilka bo svetila manj intenzivno, saj skozi njo teče manjši tok.']
       },
-      
+
     ];
 
     // this.currentChallengeIndex = 0;
@@ -150,7 +150,7 @@ export default class WorkspaceScene extends Phaser.Scene {
 
     makeButton(width - 140, 60, 'Lestvica', () => this.scene.start('ScoreboardScene', { cameFromMenu: false }));
     makeButton(width - 140, 120, 'Preveri krog', () => this.checkCircuit());
-    makeButton(width - 140, 180, 'Simulacija', () => this.graph.simulate());
+    makeButton(width - 140, 180, 'Simulacija', () => this.connected = this.graph.simulate());
 
     // stranska vrstica na levi
     const panelWidth = 150;
@@ -189,7 +189,7 @@ export default class WorkspaceScene extends Phaser.Scene {
           this.scene.start('LabScene');
         });
       });
-    
+
     this.add.text(width / 2 + 50, 30, 'Povleci komponente na mizo in zgradi svoj električni krog!\nNamig: dvojni klik na komponento, da jo obrneš.', {
       fontSize: '20px',
       color: '#333',
@@ -458,7 +458,7 @@ export default class WorkspaceScene extends Phaser.Scene {
           .setDisplaySize(100, 100);
         component.add(componentImage);
         component.setData('logicComponent', null)
-        break;  
+        break;
     }
 
     // Label
@@ -500,26 +500,27 @@ export default class WorkspaceScene extends Phaser.Scene {
       if (isInPanel && !component.getData('isInPanel')) {
         // če je ob strani, se odstrani
         component.destroy();
-        return;
-      }
-      else if (!isInPanel && component.getData('isInPanel')) {
-        // s strani na mizo: snap, update nodes, add to graph once
+      } else if (!isInPanel && component.getData('isInPanel')) {
+        // s strani na mizo
         const snapped = this.snapToGrid(component.x, component.y);
         component.x = snapped.x;
         component.y = snapped.y;
 
-        this.updateLogicNodePositions(component);
-
         const comp = component.getData('logicComponent');
-        if (comp && !comp._addedToGraph) {
+        if (comp) {
+          console.log("Component: " + comp)
           this.graph.addComponent(comp);
-          comp._addedToGraph = true;
+
+          // Add start/end nodes to graph if they exist
+          if (comp.start) this.graph.addNode(comp.start);
+          if (comp.end) this.graph.addNode(comp.end);
         }
+
+        this.updateLogicNodePositions(component);
 
         component.setData('isRotated', false);
         component.setData('isInPanel', false);
 
-        // recreate a new palette instance
         this.createComponent(
           component.getData('originalX'),
           component.getData('originalY'),
@@ -528,8 +529,8 @@ export default class WorkspaceScene extends Phaser.Scene {
         );
 
         this.placedComponents.push(component);
-      }
-      else if (!component.getData('isInPanel')) {
+
+      } else if (!component.getData('isInPanel')) {
         // na mizi in se postavi na mrežo
         const snapped = this.snapToGrid(component.x, component.y);
         component.x = snapped.x;
@@ -543,6 +544,7 @@ export default class WorkspaceScene extends Phaser.Scene {
         component.y = component.getData('originalY');
 
         this.updateLogicNodePositions(component);
+
       }
 
       this.time.delayedCall(500, () => {
@@ -551,39 +553,19 @@ export default class WorkspaceScene extends Phaser.Scene {
     });
 
     component.on('pointerdown', () => {
-      // if (!component.getData('isInPanel')) {
-      //   const currentRotation = component.getData('rotation');
-      //   const newRotation = (currentRotation + 90) % 360;
-      //   component.setData('rotation', newRotation);
-      //   component.setData('isRotated', !component.getData('isRotated'));
+      if (!component.getData('isInPanel')) {
+        const currentRotation = component.getData('rotation');
+        const newRotation = (currentRotation + 90) % 360;
+        component.setData('rotation', newRotation);
+        component.setData('isRotated', !component.getData('isRotated'));
 
-      //   this.tweens.add({
-      //     targets: component,
-      //     angle: newRotation,
-      //     duration: 150,
-      //     ease: 'Cubic.easeOut',
-      //   });
-
-      //   // update nodes after rotation
-      //   this.updateLogicNodePositions(component);
-      // }
-      if (component.getData('isInPanel')) return;
-
-      const currentRotation = component.getData('rotation') || 0;
-      const newRotation = (currentRotation + 90) % 360;
-      component.setData('rotation', newRotation);
-      component.setData('isRotated', (newRotation % 180) !== 0);
-
-      this.tweens.add({
-        targets: component,
-        angle: newRotation,
-        duration: 150,
-        ease: 'Cubic.easeOut',
-        onComplete: () => {
-          // update nodes using final angle/rotation
-          this.updateLogicNodePositions(component);
-        }
-      });
+        this.tweens.add({
+          targets: component,
+          angle: newRotation,
+          duration: 150,
+          ease: 'Cubic.easeOut',
+        });
+      }
     });
 
     // hover efekt
@@ -596,7 +578,6 @@ export default class WorkspaceScene extends Phaser.Scene {
     });
   }
 
-
   checkCircuit() {
     const currentChallenge = this.challenges[this.currentChallengeIndex];
     const placedTypes = this.placedComponents.map(comp => comp.getData('type'));
@@ -608,6 +589,15 @@ export default class WorkspaceScene extends Phaser.Scene {
     }
 
     // je pravilna simulacija 
+    if (this.connected == undefined) {
+      this.checkText.setText('Zaženi simlacijo');
+      return;
+    }
+
+    if (this.connected == false) {
+      this.checkText.setText('Električni krog ni sklenjen. Preveri kako si ga sestavil');
+      return;
+    }
 
 
     // je zaprt krog
