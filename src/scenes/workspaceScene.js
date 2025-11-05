@@ -203,36 +203,36 @@ export default class WorkspaceScene extends Phaser.Scene {
     this.placedComponents = [];
     this.gridSize = 40;
 
-    const scoreButton = this.add.text(this.scale.width / 1.1, 25, 'Lestvica', {
-      fontFamily: 'Arial',
-      fontSize: '18px',
-      color: '#0066ff',
-      backgroundColor: '#e1e9ff',
-      padding: { x: 20, y: 10 }
-    })
-      .setOrigin(0.5)
-      .setInteractive({ useHandCursor: true })
-      .on('pointerover', () => scoreButton.setStyle({ color: '#0044cc' }))
-      .on('pointerout', () => scoreButton.setStyle({ color: '#0066ff' }))
-      .on('pointerdown', () => {
-        this.scene.start('ScoreboardScene');
-      });
+    // const scoreButton = this.add.text(this.scale.width / 1.1, 25, 'Lestvica', {
+    //   fontFamily: 'Arial',
+    //   fontSize: '18px',
+    //   color: '#0066ff',
+    //   backgroundColor: '#e1e9ff',
+    //   padding: { x: 20, y: 10 }
+    // })
+    //   .setOrigin(0.5)
+    //   .setInteractive({ useHandCursor: true })
+    //   .on('pointerover', () => scoreButton.setStyle({ color: '#0044cc' }))
+    //   .on('pointerout', () => scoreButton.setStyle({ color: '#0066ff' }))
+    //   .on('pointerdown', () => {
+    //     this.scene.start('ScoreboardScene');
+    //   });
 
-    const simulate = this.add.text(this.scale.width / 1.1, 25, 'Simulacija', {
-      fontFamily: 'Arial',
-      fontSize: '18px',
-      color: '#0066ff',
-      backgroundColor: '#e1e9ff',
-      padding: { x: 20, y: 10 }
-    })
-      .setOrigin(0.5, -1)
-      .setInteractive({ useHandCursor: true })
-      .on('pointerover', () => simulate.setStyle({ color: '#0044cc' }))
-      .on('pointerout', () => simulate.setStyle({ color: '#0066ff' }))
-      .on('pointerdown', () => {
-        console.log(this.graph);
-        this.graph.simulate();
-      });
+    // const simulate = this.add.text(this.scale.width / 1.1, 25, 'Simulacija', {
+    //   fontFamily: 'Arial',
+    //   fontSize: '18px',
+    //   color: '#0066ff',
+    //   backgroundColor: '#e1e9ff',
+    //   padding: { x: 20, y: 10 }
+    // })
+    //   .setOrigin(0.5, -1)
+    //   .setInteractive({ useHandCursor: true })
+    //   .on('pointerover', () => simulate.setStyle({ color: '#0044cc' }))
+    //   .on('pointerout', () => simulate.setStyle({ color: '#0066ff' }))
+    //   .on('pointerdown', () => {
+    //     console.log(this.graph);
+    //     this.graph.simulate();
+    //   });
 
     console.log(JSON.parse(localStorage.getItem('users')));
   }
@@ -279,42 +279,6 @@ export default class WorkspaceScene extends Phaser.Scene {
     return Math.floor(Math.random() * (maxFloored - minCeiled) + minCeiled);
   }
 
-  // updateLogicNodePositions(component) {
-  //   const comp = component.getData('logicComponent');
-  //   if (!comp) return;
-
-  //   let offsetStart = {x: -280, y: -40};
-  //   let offsetEnd = {x: -200, y: -40};
-
-  //   // compute absolute positions of start/end nodes
-  //   if (comp.start) {
-  //     const snap = this.snapToGrid(component.x + offsetStart.x, component.y + offsetStart.y)
-  //     comp.start.x = snap.x;
-  //     comp.start.y = snap.y;
-  //     // this.graph.addNode(comp.start);
-  //   }
-  //   if (comp.end) {
-  //     const snap = this.snapToGrid(component.x + offsetEnd.x, component.y + offsetEnd.y)
-  //     comp.end.x = snap.x;
-  //     comp.end.y = snap.y;
-  //     // this.graph.addNode(comp.end);
-  //   }
-
-  //   // update debug dots if present
-  //   const startDot = component.getData('startDot');
-  //   const endDot = component.getData('endDot');
-  //   if (startDot && comp.start) {
-  //     console.log(comp.type + " START X: " + comp.start.x + " Y: " + comp.start.y);
-  //     startDot.x = comp.start.x;
-  //     startDot.y = comp.start.y;
-  //   }
-  //   if (endDot && comp.end) {
-  //     console.log(comp.type + " END X: " + comp.end.x + " Y: " + comp.end.y);
-  //     endDot.x = comp.end.x;
-  //     endDot.y = comp.end.y;
-  //     endDot.fillColor = 0xffff00;
-  //   }
-  // }
   updateLogicNodePositions(component) {
     const comp = component.getData('logicComponent');
     if (!comp) return;
@@ -485,7 +449,7 @@ export default class WorkspaceScene extends Phaser.Scene {
           .setOrigin(0.5)
           .setDisplaySize(100, 100);
         component.add(componentImage);
-        component.setData('logicComponent', NONE)
+        component.setData('logicComponent', null)
         break;
       case 'voltmeter':
         id = "voltmeter_" + this.getRandomInt(1000, 9999);
@@ -493,18 +457,9 @@ export default class WorkspaceScene extends Phaser.Scene {
           .setOrigin(0.5)
           .setDisplaySize(100, 100);
         component.add(componentImage);
-        component.setData('logicComponent', NONE)
+        component.setData('logicComponent', null)
         break;  
     }
-
-    // if (comp && comp.start && comp.end) {
-    //   const startDot = this.add.circle(comp.start.x, comp.start.y, 5, comp.debug_color ?? 0xff0000);
-    //   const endDot = this.add.circle(comp.end.x, comp.end.y, 5, comp.debug_color ?? 0xff0000);
-    //   component.add(startDot);
-    //   component.add(endDot);
-    //   component.setData('startDot', startDot);
-    //   component.setData('endDot', endDot);
-    // }
 
     // Label
     const label = this.add.text(0, 30, type, {
@@ -547,7 +502,7 @@ export default class WorkspaceScene extends Phaser.Scene {
         component.destroy();
         return;
       }
-      if (!isInPanel && component.getData('isInPanel')) {
+      else if (!isInPanel && component.getData('isInPanel')) {
         // s strani na mizo: snap, update nodes, add to graph once
         const snapped = this.snapToGrid(component.x, component.y);
         component.x = snapped.x;
@@ -574,7 +529,7 @@ export default class WorkspaceScene extends Phaser.Scene {
 
         this.placedComponents.push(component);
       }
-      if (!component.getData('isInPanel')) {
+      else if (!component.getData('isInPanel')) {
         // na mizi in se postavi na mrežo
         const snapped = this.snapToGrid(component.x, component.y);
         component.x = snapped.x;
