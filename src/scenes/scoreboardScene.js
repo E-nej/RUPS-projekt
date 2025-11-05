@@ -126,24 +126,28 @@ export default class ScoreboardScene extends Phaser.Scene {
         this.input.keyboard.on('keydown-ESC', () => {
             if (this.cameFromMenu) {
                 this.scene.start('LabScene');
-            } else {
+            }
+            else {
                 this.scene.start('LabScene');
             }
         });
 
         // gumb
-        const backButton = this.add.text(width / 2, panelY + panelHeight - 40, '↩ Nazaj', {
-            fontFamily: 'Arial',
-            fontSize: '22px',
-            color: '#0066ff',
-            padding: { x: 20, y: 10 }
-        })
-            .setOrigin(0.5)
-            .setInteractive({ useHandCursor: true })
-            .on('pointerover', () => backButton.setStyle({ color: '#0044cc' }))
-            .on('pointerout', () => backButton.setStyle({ color: '#0066ff' }))
-            .on('pointerdown', () => {
-                this.scene.start('WorkspaceScene');
-            });
+        if (this.cameFromMenu === false) {
+            const backButton = this.add.text(width / 2, panelY + panelHeight - 40, '↩ Nazaj', {
+                fontFamily: 'Arial',
+                fontSize: '22px',
+                color: '#0066ff',
+                padding: { x: 20, y: 10 }
+            })
+                .setOrigin(0.5)
+                .setInteractive({ useHandCursor: true })
+                .on('pointerover', () => backButton.setStyle({ color: '#0044cc' }))
+                .on('pointerout', () => backButton.setStyle({ color: '#0066ff' }))
+                .on('pointerdown', () => {
+                    this.scene.start('WorkspaceScene');
+                });
+        }
+
     }
 }

@@ -65,7 +65,7 @@ export default class WorkspaceScene extends Phaser.Scene {
       {
         prompt: 'Sestavi preprosti nesklenjeni električni krog z baterijo, svetilko in stikalom.',
         requiredComponents: ['baterija', 'svetilka', 'žica', 'stikalo-off'],
-        theory: ['V nesklenjenem krogu je stikalo odprto, kar pomeni, da je električni tok prekinjen. Svetilka posledično zato ne sveti. Stikalo si predstavljaj kot vrata - kadar so odprta, tok ne teče.']
+        theory: ['V nesklenjenem krogu je stikalo odprto, kar pomeni, da je električni tok prekinjen. Svetilka posledično zato ne sveti.']
       },
       {
         prompt: 'Sestavi preprosti sklenjeni električni krog z baterijo, svetilko in stikalom.',
