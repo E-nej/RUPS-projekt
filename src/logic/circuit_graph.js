@@ -236,14 +236,14 @@ addComponent(component) {
         const battery = this.components.find(c => c.type === 'battery');
         if (!battery) {
             console.log("No battery found.");
-            return false;
+            return -1;
         }
 
         const switches = this.components.filter(c => c.type === 'switche');
         switches.forEach(s => {
             if (!s.is_on) {
                 console.log("Switch " + s.id + " is OFF");
-                return false;
+                return -2;
             }
         })
 
@@ -265,14 +265,14 @@ addComponent(component) {
                 if (b.is_on) console.log(`💡 Bulb ${b.id} is now ON.`);
                 else console.log(`💡 Bulb ${b.id} is now OFF.`)
             });
-            return true;
+            return 1;
         } else {
             console.log("Circuit open. No current flows.");
             const bulbs = this.components.filter(c => c.type === 'bulb');
             bulbs.forEach(b => {
                 if (typeof b.turnOff === 'function') b.turnOff();
             });
-            return false;
+            return 0;
         }
     }
 }

@@ -150,7 +150,26 @@ export default class WorkspaceScene extends Phaser.Scene {
 
     makeButton(width - 140, 60, 'Lestvica', () => this.scene.start('ScoreboardScene', { cameFromMenu: false }));
     makeButton(width - 140, 120, 'Preveri krog', () => this.checkCircuit());
-    makeButton(width - 140, 180, 'Simulacija', () => this.connected = this.graph.simulate());
+    makeButton(width - 140, 180, 'Simulacija', () => {
+      this.connected = this.graph.simulate()
+      if (this.connected == 1) {
+        this.checkText.setStyle({ color: '#00aa00' });
+        this.checkText.setText('Električni tok je sklenjen');
+        this.sim = true;
+        return;
+      }
+      this.checkText.setStyle({ color: '#cc0000' });
+      if (this.connected == -1) {
+        this.checkText.setText('Manjka ti baterija');
+      }
+      else if (this.connected == -2) {
+        this.checkText.setText('Stikalo je izklopljeno');
+      }
+      else if (this.connected == 0) {
+        this.checkText.setText('Električni tok ni sklenjen');
+      }
+      this.sim = false;
+    });
 
     // stranska vrstica na levi
     const panelWidth = 150;
@@ -582,6 +601,7 @@ export default class WorkspaceScene extends Phaser.Scene {
     const currentChallenge = this.challenges[this.currentChallengeIndex];
     const placedTypes = this.placedComponents.map(comp => comp.getData('type'));
     console.log("components", placedTypes);
+    this.checkText.setStyle({ color: '#cc0000' });
     // preverjas ce so vse komponente na mizi
     if (!currentChallenge.requiredComponents.every(req => placedTypes.includes(req))) {
       this.checkText.setText('Manjkajo komponente za krog.');
@@ -589,12 +609,12 @@ export default class WorkspaceScene extends Phaser.Scene {
     }
 
     // je pravilna simulacija 
-    if (this.connected == undefined) {
+    if (this.sim == undefined) {
       this.checkText.setText('Zaženi simlacijo');
       return;
     }
 
-    if (this.connected == false) {
+    if (this.sim == false) {
       this.checkText.setText('Električni krog ni sklenjen. Preveri kako si ga sestavil');
       return;
     }
