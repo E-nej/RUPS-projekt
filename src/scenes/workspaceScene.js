@@ -34,10 +34,25 @@ export default class WorkspaceScene extends Phaser.Scene {
     const { width, height } = this.cameras.main;
 
     // površje mize
-    this.add.rectangle(0, 0, width, height, 0xa0826d).setOrigin(0);
+    const desk = this.add.rectangle(0, 0, width, height, 0xe0c9a6).setOrigin(0);
+    const gridGraphics = this.add.graphics();
+    gridGraphics.lineStyle(1, 0x8b7355, 0.35);
+    const gridSize = 40;
+    for (let x = 0; x < width; x += gridSize) {
+      gridGraphics.beginPath();
+      gridGraphics.moveTo(x, 0);
+      gridGraphics.lineTo(x, height);
+      gridGraphics.strokePath();
+    }
+    for (let y = 0; y < height; y += gridSize) {
+      gridGraphics.beginPath();
+      gridGraphics.moveTo(0, y);
+      gridGraphics.lineTo(width, y);
+      gridGraphics.strokePath();
+    }
 
     // mreža na mizi
-    this.createGrid();
+
 
     this.challenges = [
       {
@@ -101,27 +116,46 @@ export default class WorkspaceScene extends Phaser.Scene {
       padding: { x: 15, y: 8 }
     }).setOrigin(0.5);
 
-    const checkButton = this.add.text(this.scale.width / 1.2, 25, 'Preveri krog', {
-      fontFamily: 'Arial',
-      fontSize: '18px',
-      color: '#0066ff',
-      backgroundColor: '#e1e9ff',
-      padding: { x: 20, y: 10 }
-    }).setOrigin(0.5)
-      .setInteractive({ useHandCursor: true })
-      .on('pointerover', () => checkButton.setStyle({ color: '#0044cc' }))
-      .on('pointerout', () => checkButton.setStyle({ color: '#0066ff' }))
-      .on('pointerdown', () => {
-        this.checkCircuit();
-      });
+    const buttonWidth = 180;
+    const buttonHeight = 45;
+    const cornerRadius = 10;
 
+    const makeButton = (x, y, label, onClick) => {
+      const bg = this.add.graphics();
+      bg.fillStyle(0x3399ff, 1);
+      bg.fillRoundedRect(x - buttonWidth / 2, y - buttonHeight / 2, buttonWidth, buttonHeight, cornerRadius);
+
+      const text = this.add.text(x, y, label, {
+        fontFamily: 'Arial',
+        fontSize: '20px',
+        color: '#ffffff'
+      }).setOrigin(0.5)
+        .setInteractive({ useHandCursor: true })
+        .on('pointerover', () => {
+          bg.clear();
+          bg.fillStyle(0x0f5cad, 1);
+          bg.fillRoundedRect(x - buttonWidth / 2, y - buttonHeight / 2, buttonWidth, buttonHeight, cornerRadius);
+        })
+        .on('pointerout', () => {
+          bg.clear();
+          bg.fillStyle(0x3399ff, 1);
+          bg.fillRoundedRect(x - buttonWidth / 2, y - buttonHeight / 2, buttonWidth, buttonHeight, cornerRadius);
+        })
+        .on('pointerdown', onClick);
+
+      return { bg, text };
+    };
+
+    makeButton(width - 140, 60, 'Lestvica', () => this.scene.start('ScoreboardScene', { cameFromMenu: false }));
+    makeButton(width - 140, 120, 'Preveri krog', () => this.checkCircuit());
+    makeButton(width - 140, 180, 'Simulacija', () => this.graph.simulate());
 
     // stranska vrstica na levi
     const panelWidth = 150;
-    this.add.rectangle(0, 0, panelWidth, height, 0x565656).setOrigin(0);
-    this.add.rectangle(0, 0, panelWidth, height, 0x000000, 0.3).setOrigin(0);
+    this.add.rectangle(0, 0, panelWidth, height, 0xc0c0c0).setOrigin(0);
+    this.add.rectangle(0, 0, panelWidth, height, 0x000000, 0.2).setOrigin(0);
 
-    this.add.text(panelWidth / 2, 30, 'Komponente', {
+    this.add.text(panelWidth / 2, 60, 'Komponente', {
       fontSize: '18px',
       color: '#ffffff',
       fontStyle: 'bold'
@@ -137,27 +171,22 @@ export default class WorkspaceScene extends Phaser.Scene {
     this.createComponent(panelWidth / 2, 580, 'ampermeter', 0x00cc66);
     this.createComponent(panelWidth / 2, 660, 'voltmeter', 0x00cc66);
 
-    const backButton = this.add.rectangle(panelWidth / 2, height - 40, 120, 40, 0x4a4a4a)
-      .setInteractive({ useHandCursor: true });
-    const backText = this.add.text(panelWidth / 2, height - 40, 'Nazaj', {
-      fontSize: '16px',
-      color: '#ffffff'
-    }).setOrigin(0.5);
-
-    backButton.on('pointerdown', () => {
-      this.cameras.main.fade(300, 0, 0, 0);
-      this.time.delayedCall(300, () => {
-        this.scene.start('LabScene');
+    const backButton = this.add.text(12, 10, '↩ Nazaj', {
+      fontFamily: 'Arial',
+      fontSize: '20px',
+      color: '#387affff',
+      padding: { x: 20, y: 10 }
+    })
+      .setOrigin(0, 0)
+      .setInteractive({ useHandCursor: true })
+      .on('pointerover', () => backButton.setStyle({ color: '#0054fdff' }))
+      .on('pointerout', () => backButton.setStyle({ color: '#387affff' }))
+      .on('pointerdown', () => {
+        this.cameras.main.fade(300, 0, 0, 0);
+        this.time.delayedCall(300, () => {
+          this.scene.start('LabScene');
+        });
       });
-    });
-
-    backButton.on('pointerover', () => {
-      backButton.setFillStyle(0x5a5a5a);
-    });
-
-    backButton.on('pointerout', () => {
-      backButton.setFillStyle(0x4a4a4a);
-    });
     
     this.add.text(width / 2 + 50, 30, 'Povleci komponente na mizo in zgradi svoj električni krog!\nNamig: dvojni klik na komponento, da jo obrneš.', {
       fontSize: '20px',
@@ -172,38 +201,38 @@ export default class WorkspaceScene extends Phaser.Scene {
     this.placedComponents = [];
     this.gridSize = 40;
 
-    const scoreButton = this.add.text(this.scale.width / 1.1, 25, 'Lestvica', {
-      fontFamily: 'Arial',
-      fontSize: '18px',
-      color: '#0066ff',
-      backgroundColor: '#e1e9ff',
-      padding: { x: 20, y: 10 }
-    })
-      .setOrigin(0.5)
-      .setInteractive({ useHandCursor: true })
-      .on('pointerover', () => scoreButton.setStyle({ color: '#0044cc' }))
-      .on('pointerout', () => scoreButton.setStyle({ color: '#0066ff' }))
-      .on('pointerdown', () => {
-        this.scene.start('ScoreboardScene', { cameFromMenu: false });
-        // localStorage.removeItem('username');
-        // this.scene.start('MenuScene');
-      });
+    // const scoreButton = this.add.text(this.scale.width / 1.1, 25, 'Lestvica', {
+    //   fontFamily: 'Arial',
+    //   fontSize: '18px',
+    //   color: '#0066ff',
+    //   backgroundColor: '#e1e9ff',
+    //   padding: { x: 20, y: 10 }
+    // })
+    //   .setOrigin(0.5)
+    //   .setInteractive({ useHandCursor: true })
+    //   .on('pointerover', () => scoreButton.setStyle({ color: '#0044cc' }))
+    //   .on('pointerout', () => scoreButton.setStyle({ color: '#0066ff' }))
+    //   .on('pointerdown', () => {
+    //     this.scene.start('ScoreboardScene', { cameFromMenu: false });
+    //     // localStorage.removeItem('username');
+    //     // this.scene.start('MenuScene');
+    //   });
 
-    const simulate = this.add.text(this.scale.width / 1.1, 25, 'Simulacija', {
-      fontFamily: 'Arial',
-      fontSize: '18px',
-      color: '#0066ff',
-      backgroundColor: '#e1e9ff',
-      padding: { x: 20, y: 10 }
-    })
-      .setOrigin(0.5, -1)
-      .setInteractive({ useHandCursor: true })
-      .on('pointerover', () => scoreButton.setStyle({ color: '#0044cc' }))
-      .on('pointerout', () => scoreButton.setStyle({ color: '#0066ff' }))
-      .on('pointerdown', () => {
-        console.log(this.graph);
-        this.graph.simulate();
-      });
+    // const simulate = this.add.text(this.scale.width / 1.1, 25, 'Simulacija', {
+    //   fontFamily: 'Arial',
+    //   fontSize: '18px',
+    //   color: '#0066ff',
+    //   backgroundColor: '#e1e9ff',
+    //   padding: { x: 20, y: 10 }
+    // })
+    //   .setOrigin(0.5, -1)
+    //   .setInteractive({ useHandCursor: true })
+    //   .on('pointerover', () => scoreButton.setStyle({ color: '#0044cc' }))
+    //   .on('pointerout', () => scoreButton.setStyle({ color: '#0066ff' }))
+    //   .on('pointerdown', () => {
+    //     console.log(this.graph);
+    //     this.graph.simulate();
+    //   });
 
     // this.input.keyboard.on('keydown-ESC', () => {
     //     this.scene.start('MenuScene');
@@ -518,6 +547,7 @@ export default class WorkspaceScene extends Phaser.Scene {
 
     // je zaprt krog
 
+    this.checkText.setStyle({ color: '#00aa00' });
     this.checkText.setText('Čestitke! Krog je pravilen.');
     this.addPoints(10);
 
@@ -525,6 +555,7 @@ export default class WorkspaceScene extends Phaser.Scene {
       this.showTheory(currentChallenge.theory);
     }
     else {
+      this.checkText.setStyle({ color: '#00aa00' });
       this.checkText.setText('Čestitke! Krog je pravilen.');
       this.addPoints(10);
       this.time.delayedCall(2000, () => this.nextChallenge());
